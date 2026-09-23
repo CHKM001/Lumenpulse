@@ -12,6 +12,7 @@ import {
   ApiOperation,
   ApiResponse,
   ApiProperty,
+  ApiExcludeEndpoint,
 } from '@nestjs/swagger';
 import {
   SentimentService,
@@ -205,6 +206,8 @@ export class TestExceptionController {
   // ===== Original Exception Testing Endpoints (Backward Compatible) =====
 
   @Get('http-exception')
+  // Always throws: diagnostic only, no success contract to publish.
+  @ApiExcludeEndpoint()
   @ApiOperation({
     summary: 'Trigger standard HTTP HttpException',
     description:
@@ -219,6 +222,8 @@ export class TestExceptionController {
   }
 
   @Get('general-error')
+  // Always throws: diagnostic only, no success contract to publish.
+  @ApiExcludeEndpoint()
   @ApiOperation({
     summary: 'Trigger standard Javascript Error',
     description:
@@ -230,6 +235,8 @@ export class TestExceptionController {
   }
 
   @Get('internal-server-error')
+  // Always throws: diagnostic only, no success contract to publish.
+  @ApiExcludeEndpoint()
   @ApiOperation({
     summary: 'Trigger unknown error type',
     description:

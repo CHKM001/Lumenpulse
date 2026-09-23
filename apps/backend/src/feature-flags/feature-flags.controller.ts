@@ -1,5 +1,6 @@
 import { Controller, Get, Param, Post, Body, Delete } from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiResponse } from '@nestjs/swagger';
+import { ApiNoBodyResponse } from '../openapi/api-no-body-response.decorator';
 import { FeatureFlagsService } from './feature-flags.service';
 import {
   UpsertFeatureFlagDto,
@@ -110,10 +111,7 @@ export class FeatureFlagsController {
     summary: 'Delete feature flag',
     description: 'Removes a feature flag from the system configuration.',
   })
-  @ApiResponse({
-    status: 200,
-    description: 'Feature flag deleted successfully',
-  })
+  @ApiNoBodyResponse('Feature flag deleted successfully')
   @ApiResponse({ status: 404, description: 'Feature flag not found' })
   remove(@Param('key') key: string) {
     return this.flags.remove(key);

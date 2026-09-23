@@ -9,7 +9,14 @@ import {
   BadRequestException,
   UseGuards,
 } from '@nestjs/common';
-import { ApiTags, ApiOperation, ApiResponse, ApiHeader } from '@nestjs/swagger';
+import {
+  ApiTags,
+  ApiOperation,
+  ApiResponse,
+  ApiHeader,
+  ApiSecurity,
+} from '@nestjs/swagger';
+import { WEBHOOK_SIGNATURE_SECURITY_SCHEME } from '../openapi/openapi.constants';
 import { WebhookService } from './webhook.service';
 import { DataProcessingWebhookDto } from './dto/webhook-payload.dto';
 import {
@@ -37,10 +44,25 @@ export class WebhookController {
       'Verifies the HMAC-SHA256 signature in the X-Webhook-Signature header and ' +
       'converts the payload into an in-app Notification.',
   })
+  @ApiSecurity(WEBHOOK_SIGNATURE_SECURITY_SCHEME)
   @ApiHeader({
     name: 'X-Webhook-Signature',
     description: 'HMAC-SHA256 signature — format: sha256=<hex>',
     required: true,
+  })
+  @ApiHeader({
+    name: 'X-Webhook-Timestamp',
+    description:
+      'Delivery time as Unix epoch milliseconds; rejected if in the future or older than the tolerance window (default 5 minutes)',
+    required: true,
+    example: '1767225600000',
+  })
+  @ApiHeader({
+    name: 'X-Webhook-Nonce',
+    description:
+      'Unique per-delivery identifier (UUID recommended); a nonce seen within the tolerance window is rejected as a replay',
+    required: true,
+    example: '550e8400-e29b-41d4-a716-446655440000',
   })
   @ApiResponse({
     status: 200,

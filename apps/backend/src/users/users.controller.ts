@@ -24,6 +24,7 @@ import {
   ApiOperation,
   ApiResponse,
 } from '@nestjs/swagger';
+import { ApiNoBodyResponse } from '../openapi/api-no-body-response.decorator';
 import { Request } from 'express';
 import { UsersService } from './users.service';
 import {
@@ -259,6 +260,7 @@ export class UsersController {
   @Post('me/accounts/:id/primary')
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: 'Set as primary account for current user' })
+  @ApiNoBodyResponse('Primary account updated')
   async setMyPrimaryAccount(
     @Req() req: RequestWithUser,
     @Param('id') accountId: string,

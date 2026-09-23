@@ -1,6 +1,11 @@
 import { Controller, Get } from '@nestjs/common';
 import { AppService } from './app.service';
-import { ApiTags, ApiOperation, ApiResponse } from '@nestjs/swagger';
+import {
+  ApiTags,
+  ApiOperation,
+  ApiOkResponse,
+  ApiProduces,
+} from '@nestjs/swagger';
 
 @ApiTags('app')
 @Controller()
@@ -9,7 +14,11 @@ export class AppController {
 
   @Get()
   @ApiOperation({ summary: 'Root endpoint' })
-  @ApiResponse({ status: 200, description: 'Returns Hello World' })
+  @ApiProduces('text/html')
+  @ApiOkResponse({
+    description: 'Returns Hello World',
+    schema: { type: 'string', example: 'Hello World!' },
+  })
   getHello(): string {
     return this.appService.getHello();
   }

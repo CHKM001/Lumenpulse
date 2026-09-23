@@ -15,6 +15,8 @@ import {
   ApiOperation,
   ApiResponse,
   ApiBearerAuth,
+  ApiCreatedResponse,
+  ApiOkResponse,
 } from '@nestjs/swagger';
 import { Throttle } from '@nestjs/throttler';
 import { GrantsService } from './grants.service';
@@ -31,12 +33,18 @@ import {
   LeaderboardQueryDto,
   LeaderboardResponseDto,
 } from './dto/grants.dto';
+import {
+  DistributeResponseDto,
+  FundPoolResponseDto,
+  GrantsSuccessResponseDto,
+} from './dto/grants-response.dto';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { RolesGuard } from '../auth/roles.guard';
 import { Roles } from '../auth/decorators/auth.decorators';
 import { UserRole } from '../users/entities/user.entity';
 import { AuditBlockchainAction } from '../admin-audit/decorators/audit-blockchain-action.decorator';
 import { AdminAuditInterceptor } from '../admin-audit/interceptors/admin-audit.interceptor';
+import { JWT_SECURITY_SCHEME } from '../openapi/openapi.constants';
 
 @ApiTags('grants')
 @Controller('grants')
@@ -111,7 +119,7 @@ export class GrantsController {
 
   @Post('rounds')
   @UseGuards(JwtAuthGuard, RolesGuard)
-  @ApiBearerAuth('JWT-auth')
+  @ApiBearerAuth(JWT_SECURITY_SCHEME)
   @Roles(UserRole.ADMIN)
   @UseInterceptors(AdminAuditInterceptor)
   @AuditBlockchainAction({ contractField: 'tokenAddress' })
@@ -133,7 +141,7 @@ export class GrantsController {
 
   @Post('rounds/:id/finalize')
   @UseGuards(JwtAuthGuard, RolesGuard)
-  @ApiBearerAuth('JWT-auth')
+  @ApiBearerAuth(JWT_SECURITY_SCHEME)
   @Roles(UserRole.ADMIN)
   @UseInterceptors(AdminAuditInterceptor)
   @AuditBlockchainAction({ contractField: 'id' })
@@ -142,14 +150,14 @@ export class GrantsController {
     description:
       'Flags the round as finalized, calculating final matching pool allocations. Requires admin role.',
   })
-  @ApiResponse({
-    status: 200,
+  @ApiCreatedResponse({
     description: 'Round finalized successfully',
+    type: RoundDto,
   })
   @ApiResponse({ status: 401, description: 'Unauthorized' })
   @ApiResponse({ status: 403, description: 'Forbidden (admin only)' })
   @ApiResponse({ status: 404, description: 'Round not found' })
-  finalizeRound(@Param('id', ParseIntPipe) id: number) {
+  finalizeRound(@Param('id', ParseIntPipe) id: number): RoundDto {
     return this.grantsService.finalizeRound(id);
   }
 
@@ -157,7 +165,7 @@ export class GrantsController {
 
   @Post('rounds/fund')
   @UseGuards(JwtAuthGuard, RolesGuard)
-  @ApiBearerAuth('JWT-auth')
+  @ApiBearerAuth(JWT_SECURITY_SCHEME)
   @Roles(UserRole.ADMIN)
   @UseInterceptors(AdminAuditInterceptor)
   @AuditBlockchainAction({ contractField: 'funderPublicKey' })
@@ -166,14 +174,14 @@ export class GrantsController {
     description:
       'Records funding into the matching pool for a specific round. Requires admin role.',
   })
-  @ApiResponse({
-    status: 200,
+  @ApiCreatedResponse({
     description: 'Matching pool funded successfully',
+    type: FundPoolResponseDto,
   })
   @ApiResponse({ status: 401, description: 'Unauthorized' })
   @ApiResponse({ status: 403, description: 'Forbidden (admin only)' })
   @ApiResponse({ status: 404, description: 'Round not found' })
-  fundPool(@Body() dto: FundPoolDto) {
+  fundPool(@Body() dto: FundPoolDto): FundPoolResponseDto {
     return this.grantsService.fundPool(dto);
   }
 
@@ -181,7 +189,7 @@ export class GrantsController {
 
   @Post('rounds/projects/approve')
   @UseGuards(JwtAuthGuard, RolesGuard)
-  @ApiBearerAuth('JWT-auth')
+  @ApiBearerAuth(JWT_SECURITY_SCHEME)
   @Roles(UserRole.ADMIN, UserRole.REVIEWER)
   @UseInterceptors(AdminAuditInterceptor)
   @AuditBlockchainAction({ contractField: 'roundId' })
@@ -190,21 +198,21 @@ export class GrantsController {
     description:
       'Approves project eligibility to receive match funding in the round. Requires admin or reviewer role.',
   })
-  @ApiResponse({
-    status: 200,
+  @ApiCreatedResponse({
     description: 'Project approved successfully',
+    type: GrantsSuccessResponseDto,
   })
   @ApiResponse({ status: 401, description: 'Unauthorized' })
   @ApiResponse({ status: 403, description: 'Forbidden' })
   @ApiResponse({ status: 404, description: 'Round or project not found' })
-  approveProject(@Body() dto: ApproveProjectDto) {
+  approveProject(@Body() dto: ApproveProjectDto): GrantsSuccessResponseDto {
     this.grantsService.approveProject(dto);
     return { success: true };
   }
 
   @Delete('rounds/:roundId/projects/:projectId')
   @UseGuards(JwtAuthGuard, RolesGuard)
-  @ApiBearerAuth('JWT-auth')
+  @ApiBearerAuth(JWT_SECURITY_SCHEME)
   @Roles(UserRole.ADMIN)
   @UseInterceptors(AdminAuditInterceptor)
   @AuditBlockchainAction({ contractField: 'roundId' })
@@ -213,9 +221,9 @@ export class GrantsController {
     description:
       'Removes project eligibility from a round. Requires admin role.',
   })
-  @ApiResponse({
-    status: 200,
+  @ApiOkResponse({
     description: 'Project removed successfully',
+    type: GrantsSuccessResponseDto,
   })
   @ApiResponse({ status: 401, description: 'Unauthorized' })
   @ApiResponse({ status: 403, description: 'Forbidden (admin only)' })
@@ -223,7 +231,7 @@ export class GrantsController {
   removeProject(
     @Param('roundId', ParseIntPipe) roundId: number,
     @Param('projectId', ParseIntPipe) projectId: number,
-  ) {
+  ): GrantsSuccessResponseDto {
     this.grantsService.removeProject(roundId, projectId);
     return { success: true };
   }
@@ -236,12 +244,14 @@ export class GrantsController {
     description:
       'Records an on-chain contribution towards a project in a round.',
   })
-  @ApiResponse({
-    status: 200,
+  @ApiCreatedResponse({
     description: 'Contribution recorded successfully',
+    type: GrantsSuccessResponseDto,
   })
   @ApiResponse({ status: 400, description: 'Invalid round or project' })
-  recordContribution(@Body() dto: RecordContributionDto) {
+  recordContribution(
+    @Body() dto: RecordContributionDto,
+  ): GrantsSuccessResponseDto {
     this.grantsService.recordContribution(dto);
     return { success: true };
   }
@@ -250,7 +260,7 @@ export class GrantsController {
 
   @Post('rounds/distribute')
   @UseGuards(JwtAuthGuard, RolesGuard)
-  @ApiBearerAuth('JWT-auth')
+  @ApiBearerAuth(JWT_SECURITY_SCHEME)
   @Roles(UserRole.ADMIN)
   @UseInterceptors(AdminAuditInterceptor)
   @AuditBlockchainAction({ contractField: 'roundId' })
@@ -259,14 +269,14 @@ export class GrantsController {
     description:
       'Distributes pool allocations to approved project owners. Requires admin role.',
   })
-  @ApiResponse({
-    status: 200,
+  @ApiCreatedResponse({
     description: 'Distribution completed successfully',
+    type: DistributeResponseDto,
   })
   @ApiResponse({ status: 401, description: 'Unauthorized' })
   @ApiResponse({ status: 403, description: 'Forbidden (admin only)' })
   @ApiResponse({ status: 404, description: 'Round not found' })
-  distribute(@Body() dto: DistributeDto) {
+  distribute(@Body() dto: DistributeDto): DistributeResponseDto {
     return this.grantsService.distribute(dto);
   }
   @Get('leaderboard')

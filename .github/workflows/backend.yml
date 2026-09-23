@@ -6,11 +6,15 @@ on:
     branches: [ "main" ]
     paths:
       - 'apps/backend/**'
+      - 'apps/webapp/generated/**'
+      - 'apps/webapp/scripts/generate-api-types.mjs'
   pull_request:
     branches: [ "main" ]
     paths:
       - 'apps/backend/**'
       - 'apps/backend/.ci-trigger'
+      - 'apps/webapp/generated/**'
+      - 'apps/webapp/scripts/generate-api-types.mjs'
 
 jobs:
   backend-checks:
@@ -46,8 +50,19 @@ jobs:
       if: env.SKIP_TESTS != 'true'
       run: npm run test
 
-    - name: Build
+    - name: Build (also regenerates openapi.json)
       run: npm run build
+
+    - name: Verify committed OpenAPI spec is up to date
+      run: |
+        if ! git diff --exit-code -- openapi.json; then
+          echo "::error file=apps/backend/openapi.json::openapi.json is stale. Run 'npm run build' in apps/backend and commit the updated openapi.json."
+          exit 1
+        fi
+
+    - name: Verify webapp API types match the spec
+      working-directory: ./apps/webapp
+      run: node scripts/generate-api-types.mjs --check
 
   migration-safety:
     runs-on: ubuntu-latest

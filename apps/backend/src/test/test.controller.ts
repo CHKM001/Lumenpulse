@@ -8,9 +8,17 @@ import {
   Param,
   UseGuards,
 } from '@nestjs/common';
-import { ApiTags, ApiOperation, ApiResponse, ApiParam } from '@nestjs/swagger';
+import {
+  ApiTags,
+  ApiOperation,
+  ApiResponse,
+  ApiParam,
+  ApiCreatedResponse,
+  ApiExcludeEndpoint,
+} from '@nestjs/swagger';
 import { FeatureFlag } from '../feature-flags/feature-flag.decorator';
 import { FeatureFlagGuard } from '../feature-flags/feature-flag.guard';
+import { SubmitDataResponseDto } from './dto/submit-data-response.dto';
 
 @ApiTags('test')
 @Controller('test')
@@ -37,22 +45,11 @@ export class TestController {
     summary: 'Submit diagnostic data',
     description: 'Echos submitted payload back with a timestamp for testing.',
   })
-  @ApiResponse({
-    status: 200,
+  @ApiCreatedResponse({
     description: 'Data submitted successfully',
-    schema: {
-      properties: {
-        message: { type: 'string', example: 'Data submitted successfully' },
-        timestamp: { type: 'string', format: 'date-time' },
-        receivedData: { type: 'object' },
-      },
-    },
+    type: SubmitDataResponseDto,
   })
-  submitData(@Body() body: Record<string, unknown>): {
-    message: string;
-    timestamp: Date;
-    receivedData?: Record<string, unknown>;
-  } {
+  submitData(@Body() body: Record<string, unknown>): SubmitDataResponseDto {
     return {
       message: 'Data submitted successfully',
       timestamp: new Date(),
@@ -61,6 +58,8 @@ export class TestController {
   }
 
   @Get('error')
+  // Always throws: diagnostic only, no success contract to publish.
+  @ApiExcludeEndpoint()
   @ApiOperation({
     summary: 'Trigger standard Error for testing logs',
     description:
@@ -72,6 +71,8 @@ export class TestController {
   }
 
   @Get('not-found')
+  // Always throws: diagnostic only, no success contract to publish.
+  @ApiExcludeEndpoint()
   @ApiOperation({
     summary: 'Trigger Not Found Error for testing logs',
     description:

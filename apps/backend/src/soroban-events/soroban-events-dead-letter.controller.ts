@@ -19,6 +19,7 @@ import {
   ApiParam,
   ApiBearerAuth,
 } from '@nestjs/swagger';
+import { JWT_SECURITY_SCHEME } from '../openapi/openapi.constants';
 import { SorobanEventsDeadLetterService } from './soroban-events-dead-letter.service';
 import {
   ListDeadLetterEventsQueryDto,
@@ -53,7 +54,7 @@ import { Request } from 'express';
 @Controller('soroban-events/dead-letter')
 @UseGuards(JwtAuthGuard, RolesGuard)
 @Roles(UserRole.ADMIN)
-@ApiBearerAuth()
+@ApiBearerAuth(JWT_SECURITY_SCHEME)
 export class SorobanEventsDeadLetterController {
   private readonly logger = new Logger(SorobanEventsDeadLetterController.name);
 

@@ -16,6 +16,7 @@ import {
   ApiParam,
   ApiBearerAuth,
   ApiQuery,
+  ApiOkResponse,
 } from '@nestjs/swagger';
 import { OutboxService } from './outbox.service';
 import { OutboxEvent } from './outbox-event.entity';
@@ -23,6 +24,8 @@ import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { RolesGuard } from '../auth/roles.guard';
 import { Roles } from '../auth/decorators/auth.decorators';
 import { UserRole } from '../users/entities/user.entity';
+import { JWT_SECURITY_SCHEME } from '../openapi/openapi.constants';
+import { OutboxDeadLetterListResponseDto } from './dto/outbox-dead-letter-list-response.dto';
 
 /**
  * Outbox Dead Letter Controller
@@ -35,7 +38,7 @@ import { UserRole } from '../users/entities/user.entity';
 @Controller('outbox/dead-letter')
 @UseGuards(JwtAuthGuard, RolesGuard)
 @Roles(UserRole.ADMIN)
-@ApiBearerAuth()
+@ApiBearerAuth(JWT_SECURITY_SCHEME)
 export class OutboxDeadLetterController {
   private readonly logger = new Logger(OutboxDeadLetterController.name);
 
@@ -63,14 +66,14 @@ export class OutboxDeadLetterController {
     example: 20,
     description: 'Number of results per page',
   })
-  @ApiResponse({
-    status: 200,
+  @ApiOkResponse({
     description: 'Paginated list of dead-lettered outbox events',
+    type: OutboxDeadLetterListResponseDto,
   })
   async listDeadLetters(
     @Query('page') page?: string,
     @Query('limit') limit?: string,
-  ) {
+  ): Promise<OutboxDeadLetterListResponseDto> {
     const resolvedPage = Math.max(0, Number(page) || 0);
     const resolvedLimit = Math.min(100, Math.max(1, Number(limit) || 20));
     this.logger.debug(

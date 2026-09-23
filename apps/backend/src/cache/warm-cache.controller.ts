@@ -11,7 +11,7 @@ import {
 import {
   ApiTags,
   ApiOperation,
-  ApiResponse,
+  ApiOkResponse,
   ApiBearerAuth,
   ApiBody,
 } from '@nestjs/swagger';
@@ -21,11 +21,12 @@ import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { RolesGuard } from '../auth/roles.guard';
 import { Roles } from '../auth/decorators/auth.decorators';
 import { UserRole } from '../users/entities/user.entity';
-
-class ForceRefreshDto {
-  /** Optional identifier for audit logs. */
-  requestedBy?: string;
-}
+import { JWT_SECURITY_SCHEME } from '../openapi/openapi.constants';
+import {
+  ForceRefreshDto,
+  WarmCacheReportDto,
+  WarmCacheStatusDto,
+} from './dto/warm-cache.dto';
 
 @ApiTags('cache')
 @Controller('cache')
@@ -43,7 +44,7 @@ export class WarmCacheController {
   @Post('warm')
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(UserRole.ADMIN)
-  @ApiBearerAuth()
+  @ApiBearerAuth(JWT_SECURITY_SCHEME)
   @HttpCode(HttpStatus.OK)
   @ApiOperation({
     summary: 'Manually trigger a warm-cache preload cycle',
@@ -52,9 +53,9 @@ export class WarmCacheController {
       'Skips if Redis is unhealthy. Restricted to ADMIN role.',
   })
   @ApiBody({ type: ForceRefreshDto, required: false })
-  @ApiResponse({
-    status: HttpStatus.OK,
+  @ApiOkResponse({
     description: 'Warm-cache refresh report.',
+    type: WarmCacheReportDto,
   })
   async forceRefresh(@Body() dto?: ForceRefreshDto): Promise<WarmCacheReport> {
     this.logger.log(
@@ -72,18 +73,18 @@ export class WarmCacheController {
   @Get('warm/status')
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(UserRole.ADMIN)
-  @ApiBearerAuth()
+  @ApiBearerAuth(JWT_SECURITY_SCHEME)
   @ApiOperation({
     summary: 'Get the last warm-cache refresh report',
     description:
       'Returns the result of the most recently completed preload cycle, ' +
       'or null if no cycle has run yet.',
   })
-  @ApiResponse({
-    status: HttpStatus.OK,
+  @ApiOkResponse({
     description: 'Last warm-cache report (or null if never run).',
+    type: WarmCacheStatusDto,
   })
-  getStatus(): { lastRunAt: string | null; report: WarmCacheReport | null } {
+  getStatus(): WarmCacheStatusDto {
     return {
       lastRunAt: this.preloaderService.getLastRunAt(),
       report: this.preloaderService.getLastReport(),

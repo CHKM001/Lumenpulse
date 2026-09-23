@@ -40,7 +40,14 @@ import {
   ApiOperation,
   ApiResponse,
   ApiBearerAuth,
+  ApiOkResponse,
+  ApiCreatedResponse,
 } from '@nestjs/swagger';
+import { JWT_SECURITY_SCHEME } from '../openapi/openapi.constants';
+import {
+  AuthMessageResponseDto,
+  VerifyChallengeResponseDto,
+} from './dto/auth-response.dto';
 import { ProfileResponseDto } from '../users/dto/profile-response.dto';
 import { getAuthThrottleOverride } from '../common/rate-limit/rate-limit.config';
 import { AuditLogAction } from '../audit/decorators/audit-log.decorator';
@@ -229,19 +236,22 @@ export class AuthController {
   @UseGuards(JwtAuthGuard)
   @Post('logout-all')
   @HttpCode(HttpStatus.OK)
+  @ApiBearerAuth(JWT_SECURITY_SCHEME)
   @ApiOperation({ summary: 'Logout from all devices' })
-  @ApiResponse({
-    status: 200,
+  @ApiOkResponse({
     description: 'Logout from all devices successful',
+    type: AuthMessageResponseDto,
   })
-  async logoutAll(@Request() req: { user: { sub: string } }) {
+  async logoutAll(
+    @Request() req: { user: { sub: string } },
+  ): Promise<AuthMessageResponseDto> {
     return this.authService.logoutAll(req.user.sub);
   }
 
   @UseGuards(JwtAuthGuard)
   @UseInterceptors(ClassSerializerInterceptor)
   @Get('profile')
-  @ApiBearerAuth('JWT-auth')
+  @ApiBearerAuth(JWT_SECURITY_SCHEME)
   @ApiOperation({ summary: 'Get current user profile' })
   @ApiResponse({
     status: 200,
@@ -314,16 +324,9 @@ export class AuthController {
   @Post('verify')
   @Throttle(getAuthThrottleOverride())
   @ApiOperation({ summary: 'Verify signed challenge and issue JWT' })
-  @ApiResponse({
-    status: 200,
+  @ApiCreatedResponse({
     description: 'Authentication successful',
-    schema: {
-      properties: {
-        success: { type: 'boolean' },
-        token: { type: 'string' },
-        user: { type: 'object' },
-      },
-    },
+    type: VerifyChallengeResponseDto,
   })
   @ApiResponse({
     status: 401,
@@ -361,6 +364,7 @@ export class AuthController {
 
   @UseGuards(JwtAuthGuard)
   @Get('sessions')
+  @ApiBearerAuth(JWT_SECURITY_SCHEME)
   @ApiOperation({ summary: 'Get active sessions for current user' })
   @ApiResponse({
     status: 200,
@@ -375,6 +379,7 @@ export class AuthController {
   @UseGuards(JwtAuthGuard)
   @Post('sessions/:id/revoke')
   @HttpCode(HttpStatus.OK)
+  @ApiBearerAuth(JWT_SECURITY_SCHEME)
   @ApiOperation({ summary: 'Revoke a specific session' })
   @ApiResponse({
     status: 200,
@@ -404,7 +409,7 @@ export class AuthController {
     },
   })
   @ApiResponse({ status: 400, description: '2FA already enabled' })
-  @ApiBearerAuth('JWT-auth')
+  @ApiBearerAuth(JWT_SECURITY_SCHEME)
   async generateTwoFactorSecret(@Request() req: { user: { id: string } }) {
     return this.authService.generateTwoFactorSecret(req.user.id);
   }
@@ -423,7 +428,7 @@ export class AuthController {
     },
   })
   @ApiResponse({ status: 401, description: 'Invalid TOTP token' })
-  @ApiBearerAuth('JWT-auth')
+  @ApiBearerAuth(JWT_SECURITY_SCHEME)
   async enableTwoFactor(
     @Request() req: { user: { id: string } },
     @Body() body: TwoFactorEnableDto,
@@ -485,7 +490,7 @@ export class AuthController {
     },
   })
   @ApiResponse({ status: 401, description: 'Invalid TOTP token' })
-  @ApiBearerAuth('JWT-auth')
+  @ApiBearerAuth(JWT_SECURITY_SCHEME)
   async disableTwoFactor(
     @Request() req: { user: { id: string } },
     @Body() body: TwoFactorDisableDto,

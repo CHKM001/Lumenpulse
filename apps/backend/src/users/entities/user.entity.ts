@@ -7,6 +7,7 @@ import {
   Index,
   OneToMany,
 } from 'typeorm';
+import { ApiHideProperty } from '@nestjs/swagger';
 import { StellarAccount } from './stellar-account.entity';
 
 export enum UserRole {
@@ -37,6 +38,7 @@ export class User {
   @Column({ type: 'varchar', length: 255, unique: true, nullable: true })
   email: string;
 
+  @ApiHideProperty()
   @Column({ type: 'varchar', length: 255, nullable: true })
   passwordHash: string;
 
@@ -82,6 +84,7 @@ export class User {
   @Column({ type: 'boolean', default: false })
   twoFactorEnabled: boolean;
 
+  @ApiHideProperty()
   @Column({ type: 'varchar', length: 255, nullable: true })
   twoFactorSecret: string | null;
 

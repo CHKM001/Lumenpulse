@@ -14,6 +14,7 @@ import {
   ApiOperation,
   ApiResponse,
   ApiBearerAuth,
+  ApiOkResponse,
 } from '@nestjs/swagger';
 import { Throttle } from '@nestjs/throttler';
 import { CrowdfundService } from './crowdfund.service';
@@ -25,6 +26,7 @@ import {
   CrowdfundProjectDto,
   ContributorDto,
   ContributionResponseDto,
+  ContributionRecordDto,
 } from './dto/crowdfund.dto';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { RolesGuard } from '../auth/roles.guard';
@@ -177,16 +179,16 @@ export class CrowdfundController {
     description:
       'Retrieve all contributions made by a specific public key belonging to the user.',
   })
-  @ApiResponse({
-    status: 200,
+  @ApiOkResponse({
     description: 'Contributions list retrieved successfully',
+    type: [ContributionRecordDto],
   })
   @ApiResponse({ status: 401, description: 'Unauthorized' })
   @ApiResponse({ status: 404, description: 'Project not found' })
   getMyContributions(
     @Param('id', ParseIntPipe) id: number,
     @Query('publicKey') publicKey: string,
-  ) {
+  ): ContributionRecordDto[] {
     return this.svc.getMyContributions(id, publicKey);
   }
 }

@@ -17,7 +17,9 @@ import {
   ApiOperation,
   ApiResponse,
   ApiBearerAuth,
+  ApiOkResponse,
 } from '@nestjs/swagger';
+import { JWT_SECURITY_SCHEME } from '../openapi/openapi.constants';
 import { ReadModelRebuildService } from './read-model-rebuild.service';
 import { RebuildRequestDto } from './dto/rebuild-request.dto';
 import {
@@ -25,6 +27,11 @@ import {
   RebuildStatusResponseDto,
   RebuildTriggerResponseDto,
 } from './dto/rebuild-response.dto';
+import {
+  CancelRebuildJobResponseDto,
+  CleanupRebuildJobsResponseDto,
+  RebuildDatasetListResponseDto,
+} from './dto/rebuild-admin-response.dto';
 import {
   RebuildDataset,
   RebuildStatus,
@@ -38,7 +45,7 @@ interface AuthenticatedRequest {
 }
 
 @ApiTags('Read Model Rebuild')
-@ApiBearerAuth()
+@ApiBearerAuth(JWT_SECURITY_SCHEME)
 @Controller('api/read-model')
 @UseGuards(JwtAuthGuard, RolesGuard)
 export class ReadModelRebuildController {
@@ -127,9 +134,9 @@ export class ReadModelRebuildController {
     summary: 'Cancel a rebuild job',
     description: 'Cancel a pending or in-progress rebuild job',
   })
-  @ApiResponse({
-    status: HttpStatus.OK,
+  @ApiOkResponse({
     description: 'Job cancelled',
+    type: CancelRebuildJobResponseDto,
   })
   @ApiResponse({
     status: HttpStatus.NOT_FOUND,
@@ -142,7 +149,7 @@ export class ReadModelRebuildController {
   async cancelJob(
     @Param('jobId') jobId: string,
     @Request() req: AuthenticatedRequest,
-  ): Promise<{ success: boolean; message: string }> {
+  ): Promise<CancelRebuildJobResponseDto> {
     const userId = req.user?.userId || req.user?.sub || 'unknown';
     return this.rebuildService.cancelJob(jobId, userId);
   }
@@ -155,13 +162,13 @@ export class ReadModelRebuildController {
     description:
       'Delete completed/failed/cancelled jobs older than specified days',
   })
-  @ApiResponse({
-    status: HttpStatus.OK,
+  @ApiOkResponse({
     description: 'Jobs cleaned up',
+    type: CleanupRebuildJobsResponseDto,
   })
   async cleanupJobs(
     @Query('olderThanDays') olderThanDays?: string,
-  ): Promise<{ deleted: number }> {
+  ): Promise<CleanupRebuildJobsResponseDto> {
     const days = olderThanDays ? parseInt(olderThanDays, 10) : 30;
     return this.rebuildService.cleanupJobs(days);
   }
@@ -172,13 +179,11 @@ export class ReadModelRebuildController {
     summary: 'List available datasets',
     description: 'Get list of datasets that can be rebuilt',
   })
-  @ApiResponse({
-    status: HttpStatus.OK,
+  @ApiOkResponse({
     description: 'Datasets listed',
+    type: RebuildDatasetListResponseDto,
   })
-  listDatasets(): {
-    datasets: { name: string; description: string }[];
-  } {
+  listDatasets(): RebuildDatasetListResponseDto {
     return {
       datasets: [
         {

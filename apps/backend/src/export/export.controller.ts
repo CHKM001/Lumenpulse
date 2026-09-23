@@ -18,6 +18,8 @@ import {
   ApiBearerAuth,
   ApiOperation,
   ApiResponse,
+  ApiOkResponse,
+  ApiProduces,
 } from '@nestjs/swagger';
 import { ExportService } from './export.service';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
@@ -129,7 +131,18 @@ export class ExportController {
 
   @Get(':id/download')
   @ApiOperation({ summary: 'Download the CSV for a completed export job' })
-  @ApiResponse({ status: 200, description: 'CSV file download' })
+  @ApiProduces('text/csv')
+  @ApiOkResponse({
+    description: 'CSV file download',
+    schema: { type: 'string', format: 'binary' },
+    headers: {
+      'Content-Disposition': {
+        description:
+          'Attachment filename, e.g. attachment; filename="<type>_<YYYY-MM-DD>.csv"',
+        schema: { type: 'string' },
+      },
+    },
+  })
   async downloadJob(
     @Param('id') id: string,
     @Request() req: { user: { id: string } },

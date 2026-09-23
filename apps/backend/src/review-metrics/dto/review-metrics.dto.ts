@@ -28,6 +28,7 @@ export class ReviewMetricsQueryDto {
     description:
       'Filter by report status (applies only when domain=moderation).',
     enum: ReportStatus,
+    enumName: 'ReportStatus',
   })
   @IsOptional()
   @IsEnum(ReportStatus)

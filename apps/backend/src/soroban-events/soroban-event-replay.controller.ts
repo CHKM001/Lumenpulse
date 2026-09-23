@@ -14,6 +14,7 @@ import {
   ApiResponse,
   ApiBearerAuth,
 } from '@nestjs/swagger';
+import { JWT_SECURITY_SCHEME } from '../openapi/openapi.constants';
 import { Request } from 'express';
 import { SorobanEventReplayService } from './soroban-event-replay.service';
 import { ReplaySorobanRangeDto } from './dto/replay-range.dto';
@@ -36,7 +37,7 @@ import { AdminAuditService } from '../admin-audit/admin-audit.service';
 @Controller('soroban-events/replay')
 @UseGuards(JwtAuthGuard, RolesGuard)
 @Roles(UserRole.ADMIN)
-@ApiBearerAuth()
+@ApiBearerAuth(JWT_SECURITY_SCHEME)
 export class SorobanEventReplayController {
   private readonly logger = new Logger(SorobanEventReplayController.name);
 

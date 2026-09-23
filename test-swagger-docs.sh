@@ -5,22 +5,22 @@ echo "🔍 Testing Swagger Documentation Implementation..."
 echo ""
 
 # Check if main.ts has Swagger configuration
-echo "✓ Checking main.ts configuration..."
-if grep -q "DocumentBuilder" apps/backend/src/main.ts; then
+echo "✓ Checking OpenAPI document configuration..."
+if grep -q "DocumentBuilder" apps/backend/src/openapi/openapi.document.ts; then
     echo "  ✅ DocumentBuilder found"
 else
     echo "  ❌ DocumentBuilder not found"
     exit 1
 fi
 
-if grep -q "addBearerAuth" apps/backend/src/main.ts; then
+if grep -q "addBearerAuth" apps/backend/src/openapi/openapi.document.ts; then
     echo "  ✅ Bearer auth configured"
 else
     echo "  ❌ Bearer auth not configured"
     exit 1
 fi
 
-if grep -q "addTag" apps/backend/src/main.ts; then
+if grep -q "addTag" apps/backend/src/openapi/openapi.document.ts; then
     echo "  ✅ API tags configured"
 else
     echo "  ❌ API tags not configured"
@@ -120,9 +120,18 @@ echo ""
 echo "✓ Checking build..."
 cd apps/backend
 if npm run build > /dev/null 2>&1; then
-    echo "  ✅ Backend builds successfully"
+    echo "  ✅ Backend builds successfully (OpenAPI spec generated and linted)"
 else
-    echo "  ❌ Backend build failed"
+    echo "  ❌ Backend build failed (run 'npm run build' in apps/backend for OpenAPI lint details)"
+    exit 1
+fi
+
+echo ""
+echo "✓ Checking committed OpenAPI spec..."
+if git diff --quiet -- openapi.json; then
+    echo "  ✅ apps/backend/openapi.json is up to date"
+else
+    echo "  ❌ apps/backend/openapi.json is stale — commit the regenerated file"
     exit 1
 fi
 
@@ -134,6 +143,7 @@ echo ""
 echo "📚 Documentation available at:"
 echo "   • Swagger UI: http://localhost:3000/api/docs"
 echo "   • OpenAPI JSON: http://localhost:3000/api/docs-json"
+echo "   • Committed spec: apps/backend/openapi.json (see apps/backend/OPENAPI_CONTRACT.md)"
 echo ""
 echo "📖 Documentation files:"
 echo "   • document/api-documentation-guide.md"

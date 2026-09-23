@@ -14,13 +14,20 @@ import {
   ApiResponse,
   ApiHeader,
   ApiBody,
+  ApiSecurity,
 } from '@nestjs/swagger';
+import { WEBHOOK_SIGNATURE_SECURITY_SCHEME } from '../openapi/openapi.constants';
 import { Request } from 'express';
 import { IngestSorobanEventDto } from './dto/ingest-soroban-event.dto';
 import { IngestSorobanEventResponseDto } from './dto/ingest-soroban-event-response.dto';
 import { SorobanEventsService } from './soroban-events.service';
 import { SorobanEventIngestionGuard } from './guards/soroban-event-ingestion.guard';
-import { VerifiedWebhookRequest } from './interfaces/soroban-webhook.interface';
+import {
+  SOROBAN_NONCE_HEADER,
+  SOROBAN_SIGNATURE_HEADER,
+  SOROBAN_TIMESTAMP_HEADER,
+  VerifiedWebhookRequest,
+} from './interfaces/soroban-webhook.interface';
 
 type RequestWithVerification = Request & {
   requestId?: string;
@@ -42,13 +49,27 @@ export class SorobanEventsController {
     description:
       'Accepts Soroban events from the indexer or cron service for processing. ' +
       'Events are queued asynchronously and their status can be checked via the returned event ID. ' +
-      'This endpoint requires the SOROBAN_INGEST_SECRET header for authentication.',
+      'Requests must be HMAC-SHA256 signed with SOROBAN_INGEST_SECRET over `${timestamp}.${nonce}.${rawBody}` ' +
+      '(hex digest in the signature header); the timestamp must be within the configured tolerance (default 5 minutes).',
+  })
+  @ApiSecurity(WEBHOOK_SIGNATURE_SECURITY_SCHEME)
+  @ApiHeader({
+    name: SOROBAN_SIGNATURE_HEADER,
+    description:
+      'Hex-encoded HMAC-SHA256 of `${timestamp}.${nonce}.${rawBody}` keyed with SOROBAN_INGEST_SECRET',
+    required: true,
   })
   @ApiHeader({
-    name: 'x-ingest-secret',
+    name: SOROBAN_TIMESTAMP_HEADER,
     description:
-      'Secret token for authenticating ingest requests (configured via SOROBAN_INGEST_SECRET environment variable)',
-    example: 'your-secret-ingest-token-here',
+      'Unix epoch milliseconds when the request was signed; rejected if in the future or older than the tolerance window',
+    example: '1732000000000',
+    required: true,
+  })
+  @ApiHeader({
+    name: SOROBAN_NONCE_HEADER,
+    description: 'Unique per-request nonce included in the signed payload',
+    example: '9b2f7c4e-1d3a-4e8b-a6f0-2c5d7e9f1a3b',
     required: true,
   })
   @ApiBody({
@@ -65,7 +86,8 @@ export class SorobanEventsController {
   })
   @ApiResponse({
     status: 401,
-    description: 'Unauthorized - Missing or invalid x-ingest-secret header',
+    description:
+      'Unauthorized - Missing or invalid signature, timestamp or nonce header',
   })
   @ApiResponse({
     status: 400,

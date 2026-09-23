@@ -6,13 +6,23 @@ import {
   UsePipes,
   ValidationPipe,
 } from '@nestjs/common';
+import {
+  ApiBearerAuth,
+  ApiOkResponse,
+  ApiOperation,
+  ApiTags,
+} from '@nestjs/swagger';
 import { AdminAuditService } from './admin-audit.service';
 import { QueryAuditLogsDto } from './dto/query-audit-logs.dto';
+import { AuditLogListResponseDto } from './dto/audit-log-list-response.dto';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { RolesGuard } from '../auth/roles.guard';
 import { Roles } from '../auth/decorators/auth.decorators';
 import { UserRole } from '../users/entities/user.entity';
+import { JWT_SECURITY_SCHEME } from '../openapi/openapi.constants';
 
+@ApiTags('admin-audit')
+@ApiBearerAuth(JWT_SECURITY_SCHEME)
 @Controller('admin/audit/blockchain')
 @UseGuards(JwtAuthGuard, RolesGuard)
 @Roles(UserRole.ADMIN)
@@ -25,7 +35,18 @@ export class AdminAuditController {
    */
   @Get()
   @UsePipes(new ValidationPipe({ transform: true }))
-  async getLogs(@Query() query: QueryAuditLogsDto) {
+  @ApiOperation({
+    summary: 'Query admin blockchain-action audit logs',
+    description:
+      'Admin-only. Paginated audit trail of admin actions that touched on-chain contracts. Filter by actorId, endpoint and date range.',
+  })
+  @ApiOkResponse({
+    description: 'Page of audit log entries',
+    type: AuditLogListResponseDto,
+  })
+  async getLogs(
+    @Query() query: QueryAuditLogsDto,
+  ): Promise<AuditLogListResponseDto> {
     const { data, total } = await this.auditService.query({
       actorId: query.actorId,
       endpoint: query.endpoint,
