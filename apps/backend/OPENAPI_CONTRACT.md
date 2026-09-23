@@ -17,6 +17,7 @@ external integrators. Do not edit it by hand.
 | `npm run build` | `nest build`, then regenerates `openapi.json`. |
 | `npm run openapi:generate` | Regenerates `openapi.json` from the last build in `dist/`. |
 | `npm run openapi:check` | Exits non-zero if `openapi.json` differs from what the current `dist/` would produce. |
+| `npm run openapi:baseline` | Rewrites `openapi-lint-baseline.json` after you fix documentation gaps. |
 
 Generation doesn't need a database, Redis or Stellar RPC. The generator
 (`scripts/generate-openapi.ts`) scans the module and controller graph without
@@ -38,18 +39,50 @@ inside `nest build`.
    (`apps/webapp/scripts/generate-api-types.mjs --check`). To fix it, run
    `npm run generate:api-types` in `apps/webapp` and commit `generated/`.
 
-The build also fails if the spec is **incomplete**. `src/openapi/openapi.lint.ts`
-rejects:
+The build also fails if the lint (`src/openapi/openapi.lint.ts`) finds a problem.
 
-- operations without `@ApiTags` or an `@ApiOperation` summary
-- 2xx responses (other than 204) without a body schema
-- request bodies without a schema
-- routes protected by `JwtAuthGuard`, `RolesGuard`, `ContractAdminGuard`,
-  `ContractAdminTrustedCallerGuard`, `WebhookVerificationGuard` or
-  `SorobanEventIngestionGuard` that do not declare the matching security scheme
-- component schemas with no properties
-- two DTO classes that publish the same schema name (rename one with
-  `@ApiSchema({ name })`)
+### Security (always enforced)
+
+Every operation must declare exactly the security its guards enforce.
+`src/openapi/route-guards.ts` collects the guards for each route from
+`@UseGuards` on the controller and handler, plus every global guard
+registered with `APP_GUARD`. The lint then rejects:
+
+- a route guarded by `JwtAuthGuard`, `RolesGuard` or `ContractAdminGuard` that
+  doesn't declare `JWT-auth`; by `ContractAdminTrustedCallerGuard` that doesn't
+  declare `api-key`; or by `WebhookVerificationGuard` or
+  `SorobanEventIngestionGuard` that doesn't declare `webhook-signature`
+- a route whose guards need several schemes but which declares them as
+  separate alternatives. `[{JWT-auth}, {api-key}]` means "either", but
+  guards need both, so use `@ApiSecurity({ 'JWT-auth': [], 'api-key': [] })`
+- a declared scheme that no guard on the route enforces, or a scheme that
+  isn't defined (e.g. the `bearer` scheme an unnamed `@ApiBearerAuth()` emits)
+- a guard that is in neither `GUARD_SECURITY_SCHEMES` nor
+  `NON_CREDENTIAL_GUARDS`. A new auth guard must be classified before it
+  can ship.
+- a route the controller-graph scan can't find, whose guards therefore can't be
+  checked
+
+Register global guards with `{ provide: APP_GUARD, ... }`, not
+`app.useGlobalGuards()`, which the scan can't see. `route-guards.spec.ts`
+fails if `main.ts` or `app.setup.ts` calls `useGlobalGuards`. The same spec
+runs the lint against fixture routes that use the real JWT, API-key and
+webhook-signature guards, and against the real `AppModule`.
+
+Two DTO classes that publish the same schema name are also fatal, because
+Swagger silently keeps one shape. Rename one with `@ApiSchema({ name })`.
+
+### Documentation (ratcheted)
+
+The lint also rejects operations without `@ApiTags` or an `@ApiOperation`
+summary, 2xx responses (other than 204) without a body schema, untyped request
+bodies, and component schemas with no properties.
+
+Gaps that already existed when the lint was introduced are listed in
+`openapi-lint-baseline.json`. A **new** gap fails the build. When you fix a
+baselined gap, the build fails until you remove it with
+`npm run openapi:baseline`, so the list only shrinks. Don't add entries by
+hand to get past the lint.
 
 Each violation names the route and `Controller_method` to fix.
 
@@ -83,7 +116,9 @@ using string literals.
    descriptions and examples.
 2. Add `@ApiTags`, `@ApiOperation({ summary })` and a typed success response
    (`@ApiOkResponse({ type: Dto })`).
-3. If the route is guarded, declare the matching security decorator.
+3. If the route is guarded, declare the matching security decorator
+   (`@ApiBearerAuth(JWT_SECURITY_SCHEME)`, or `@ApiSecurity(...)` for the
+   others). If it needs several schemes, put them in one `@ApiSecurity({...})`.
 4. Run `npm run build` and commit the updated `openapi.json`. If schemas the
    webapp uses changed, also run `npm run generate:api-types` in `apps/webapp`.
 

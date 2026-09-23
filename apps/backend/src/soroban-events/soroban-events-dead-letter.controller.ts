@@ -19,7 +19,6 @@ import {
   ApiParam,
   ApiBearerAuth,
 } from '@nestjs/swagger';
-import { JWT_SECURITY_SCHEME } from '../openapi/openapi.constants';
 import { SorobanEventsDeadLetterService } from './soroban-events-dead-letter.service';
 import {
   ListDeadLetterEventsQueryDto,
@@ -37,6 +36,7 @@ import { Roles } from '../auth/decorators/auth.decorators';
 import { User, UserRole } from '../users/entities/user.entity';
 import { AdminAuditService } from '../admin-audit/admin-audit.service';
 import { Request } from 'express';
+import { JWT_SECURITY_SCHEME } from '../openapi/openapi.constants';
 
 /**
  * Dead Letter Queue Controller

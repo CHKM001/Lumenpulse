@@ -18,8 +18,6 @@ import {
   ApiBearerAuth,
   ApiOperation,
   ApiResponse,
-  ApiCreatedResponse,
-  ApiOkResponse,
 } from '@nestjs/swagger';
 import { Request } from 'express';
 import { ModerationService } from './moderation.service';
@@ -27,16 +25,11 @@ import { CreateReportDto } from './dto/create-report.dto';
 import { UpdateReportDto } from './dto/update-report.dto';
 import { QueryReportsDto } from './dto/query-reports.dto';
 import { AssignReviewerDto } from './dto/assign-reviewer.dto';
+import { ContentReport } from './entities/content-report.entity';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { RolesGuard } from '../auth/roles.guard';
 import { Roles } from '../auth/decorators/auth.decorators';
 import { UserRole } from '../users/entities/user.entity';
-import { JWT_SECURITY_SCHEME } from '../openapi/openapi.constants';
-import { ContentReport } from './entities/content-report.entity';
-import {
-  ContentReportListResponseDto,
-  ModerationStatsDto,
-} from './dto/moderation-response.dto';
 
 // Unified Authenticated Request Interface
 interface RequestWithUser extends Request {
@@ -48,7 +41,7 @@ interface RequestWithUser extends Request {
 }
 
 @ApiTags('moderation')
-@ApiBearerAuth(JWT_SECURITY_SCHEME)
+@ApiBearerAuth('JWT-auth')
 @Controller('moderation')
 @UseGuards(JwtAuthGuard)
 export class ModerationController {
@@ -60,7 +53,8 @@ export class ModerationController {
   @UsePipes(new ValidationPipe())
   @HttpCode(HttpStatus.CREATED)
   @ApiOperation({ summary: 'Submit a content report' })
-  @ApiCreatedResponse({
+  @ApiResponse({
+    status: 201,
     description: 'Report successfully created',
     type: ContentReport,
   })
@@ -71,21 +65,18 @@ export class ModerationController {
   async createReport(
     @Req() req: RequestWithUser,
     @Body() createReportDto: CreateReportDto,
-  ): Promise<ContentReport> {
+  ) {
     return this.moderationService.createReport(req.user.id, createReportDto);
   }
 
   @Get('my-reports')
   @ApiOperation({ summary: 'Get reports submitted by current user' })
-  @ApiOkResponse({
-    description: 'List of user reports',
-    type: ContentReportListResponseDto,
-  })
+  @ApiResponse({ status: 200, description: 'List of user reports' })
   async getMyReports(
     @Req() req: RequestWithUser,
     @Query('page') page?: string,
     @Query('limit') limit?: string,
-  ): Promise<ContentReportListResponseDto> {
+  ) {
     return this.moderationService.getUserReports(
       req.user.id,
       page ? parseInt(page, 10) : 1,
@@ -99,13 +90,11 @@ export class ModerationController {
   @UseGuards(RolesGuard)
   @Roles(UserRole.ADMIN)
   @ApiOperation({ summary: 'Get moderation queue (Admin only)' })
-  @ApiOkResponse({
+  @ApiResponse({
+    status: 200,
     description: 'List of all reports with pagination',
-    type: ContentReportListResponseDto,
   })
-  async getModerationQueue(
-    @Query() query: QueryReportsDto,
-  ): Promise<ContentReportListResponseDto> {
+  async getModerationQueue(@Query() query: QueryReportsDto) {
     return this.moderationService.getReports(query);
   }
 
@@ -113,11 +102,8 @@ export class ModerationController {
   @UseGuards(RolesGuard)
   @Roles(UserRole.ADMIN)
   @ApiOperation({ summary: 'Get moderation statistics (Admin only)' })
-  @ApiOkResponse({
-    description: 'Moderation queue statistics',
-    type: ModerationStatsDto,
-  })
-  async getModerationStats(): Promise<ModerationStatsDto> {
+  @ApiResponse({ status: 200, description: 'Moderation queue statistics' })
+  async getModerationStats() {
     return this.moderationService.getModerationStats();
   }
 
@@ -125,9 +111,9 @@ export class ModerationController {
   @UseGuards(RolesGuard)
   @Roles(UserRole.ADMIN)
   @ApiOperation({ summary: 'Get specific report details (Admin only)' })
-  @ApiOkResponse({ description: 'Report details', type: ContentReport })
+  @ApiResponse({ status: 200, description: 'Report details' })
   @ApiResponse({ status: 404, description: 'Report not found' })
-  async getReport(@Param('id') id: string): Promise<ContentReport> {
+  async getReport(@Param('id') id: string) {
     return this.moderationService.getReportById(id);
   }
 
@@ -136,16 +122,13 @@ export class ModerationController {
   @Roles(UserRole.ADMIN)
   @UsePipes(new ValidationPipe())
   @ApiOperation({ summary: 'Update report status (Admin only)' })
-  @ApiOkResponse({
-    description: 'Report updated successfully',
-    type: ContentReport,
-  })
+  @ApiResponse({ status: 200, description: 'Report updated successfully' })
   @ApiResponse({ status: 404, description: 'Report not found' })
   async updateReport(
     @Req() req: RequestWithUser,
     @Param('id') id: string,
     @Body() updateReportDto: UpdateReportDto,
-  ): Promise<ContentReport> {
+  ) {
     return this.moderationService.updateReport(
       id,
       req.user.id,
@@ -158,16 +141,13 @@ export class ModerationController {
   @Roles(UserRole.ADMIN)
   @UsePipes(new ValidationPipe())
   @ApiOperation({ summary: 'Assign a reviewer to a report (Admin only)' })
-  @ApiOkResponse({
-    description: 'Reviewer assigned successfully',
-    type: ContentReport,
-  })
+  @ApiResponse({ status: 200, description: 'Reviewer assigned successfully' })
   @ApiResponse({ status: 404, description: 'Report not found' })
   async assignReviewer(
     @Req() req: RequestWithUser,
     @Param('id') id: string,
     @Body() assignReviewerDto: AssignReviewerDto,
-  ): Promise<ContentReport> {
+  ) {
     return this.moderationService.assignReviewer(
       id,
       req.user.id,
@@ -175,3 +155,4 @@ export class ModerationController {
     );
   }
 }
+

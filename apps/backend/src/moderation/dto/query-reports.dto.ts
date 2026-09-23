@@ -48,8 +48,7 @@ export class QueryReportsDto {
   limit?: string;
 
   @ApiPropertyOptional({
-    description:
-      'Filter by assigned reviewer ID, or "unassigned" to get reports without a reviewer',
+    description: 'Filter by assigned reviewer ID, or "unassigned" to get reports without a reviewer',
     example: 'uuid-1234',
   })
   @IsOptional()

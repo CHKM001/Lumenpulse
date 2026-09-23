@@ -10,6 +10,8 @@ import { ExpressAdapter } from '@nestjs/platform-express';
 export interface ScannedApplication {
   app: INestApplication;
   container: NestContainer;
+  /** Guards registered through `app.useGlobalGuards()` during `setup`. */
+  globalGuards: unknown[];
 }
 
 /**
@@ -23,6 +25,7 @@ export interface ScannedApplication {
  */
 export async function scanApplication(
   rootModule: Type<unknown>,
+  setup?: (app: INestApplication) => void,
 ): Promise<ScannedApplication> {
   const config = new ApplicationConfig();
   const container = new NestContainer(config);
@@ -54,6 +57,9 @@ export async function scanApplication(
     { logger: false },
   );
   app.enableVersioning({ type: VersioningType.URI });
+  // Run the same setup as main.ts so guards it registers with
+  // app.useGlobalGuards() are visible to the security lint.
+  setup?.(app);
 
-  return { app, container };
+  return { app, container, globalGuards: config.getGlobalGuards() };
 }

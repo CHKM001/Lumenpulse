@@ -8,14 +8,6 @@
         "responses": {
           "200": {
             "description": "Returns Hello World",
-            "content": {
-              "text/html": {
-                "schema": {
-                  "type": "string",
-                  "example": "Hello World!"
-                }
-              }
-            },
             "headers": {
               "X-Request-Id": {
                 "description": "Correlation id for this request",
@@ -170,15 +162,38 @@
           }
         ],
         "responses": {
-          "201": {
+          "200": {
             "description": "Data submitted successfully",
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/SubmitDataResponseDto"
+                  "properties": {
+                    "message": {
+                      "type": "string",
+                      "example": "Data submitted successfully"
+                    },
+                    "timestamp": {
+                      "type": "string",
+                      "format": "date-time"
+                    },
+                    "receivedData": {
+                      "type": "object"
+                    }
+                  }
                 }
               }
             },
+            "headers": {
+              "X-Request-Id": {
+                "description": "Correlation id for this request",
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "201": {
+            "description": "",
             "headers": {
               "X-Request-Id": {
                 "description": "Correlation id for this request",
@@ -262,6 +277,126 @@
           }
         },
         "summary": "Submit diagnostic data",
+        "tags": [
+          "test"
+        ]
+      }
+    },
+    "/test/error": {
+      "get": {
+        "description": "Throws a generic Error to confirm that error log interceptors trigger.",
+        "operationId": "TestController_getError",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "",
+            "headers": {
+              "X-Request-Id": {
+                "description": "Correlation id for this request",
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Rate limit exceeded",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            },
+            "headers": {
+              "X-Request-Id": {
+                "description": "Correlation id for this request",
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Throws standard Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            },
+            "headers": {
+              "X-Request-Id": {
+                "description": "Correlation id for this request",
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        },
+        "summary": "Trigger standard Error for testing logs",
+        "tags": [
+          "test"
+        ]
+      }
+    },
+    "/test/not-found": {
+      "get": {
+        "description": "Throws a generic not found Error to verify filter intercepts.",
+        "operationId": "TestController_getNotFound",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "",
+            "headers": {
+              "X-Request-Id": {
+                "description": "Correlation id for this request",
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Rate limit exceeded",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            },
+            "headers": {
+              "X-Request-Id": {
+                "description": "Correlation id for this request",
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Throws resource not found error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            },
+            "headers": {
+              "X-Request-Id": {
+                "description": "Correlation id for this request",
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        },
+        "summary": "Trigger Not Found Error for testing logs",
         "tags": [
           "test"
         ]
@@ -681,6 +816,204 @@
         "summary": "Delete diagnostic data",
         "tags": [
           "test"
+        ]
+      }
+    },
+    "/test-exception/http-exception": {
+      "get": {
+        "description": "Throws a BAD_REQUEST HttpException to test exception filters.",
+        "operationId": "TestExceptionController_getHttpException",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "",
+            "headers": {
+              "X-Request-Id": {
+                "description": "Correlation id for this request",
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Throws a Bad Request exception",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            },
+            "headers": {
+              "X-Request-Id": {
+                "description": "Correlation id for this request",
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Rate limit exceeded",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            },
+            "headers": {
+              "X-Request-Id": {
+                "description": "Correlation id for this request",
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Unexpected server error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            },
+            "headers": {
+              "X-Request-Id": {
+                "description": "Correlation id for this request",
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        },
+        "summary": "Trigger standard HTTP HttpException",
+        "tags": [
+          "test-exception"
+        ]
+      }
+    },
+    "/test-exception/general-error": {
+      "get": {
+        "description": "Throws a generic Error to test internal server error mappings.",
+        "operationId": "TestExceptionController_getGeneralError",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "",
+            "headers": {
+              "X-Request-Id": {
+                "description": "Correlation id for this request",
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Rate limit exceeded",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            },
+            "headers": {
+              "X-Request-Id": {
+                "description": "Correlation id for this request",
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Throws generic Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            },
+            "headers": {
+              "X-Request-Id": {
+                "description": "Correlation id for this request",
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        },
+        "summary": "Trigger standard Javascript Error",
+        "tags": [
+          "test-exception"
+        ]
+      }
+    },
+    "/test-exception/internal-server-error": {
+      "get": {
+        "description": "Throws an Error with unknown details to verify fallback logs.",
+        "operationId": "TestExceptionController_getInternalServerError",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "",
+            "headers": {
+              "X-Request-Id": {
+                "description": "Correlation id for this request",
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Rate limit exceeded",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            },
+            "headers": {
+              "X-Request-Id": {
+                "description": "Correlation id for this request",
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Throws unknown error type",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            },
+            "headers": {
+              "X-Request-Id": {
+                "description": "Correlation id for this request",
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        },
+        "summary": "Trigger unknown error type",
+        "tags": [
+          "test-exception"
         ]
       }
     },
@@ -1175,13 +1508,6 @@
         "responses": {
           "200": {
             "description": "Warm-cache refresh report.",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/WarmCacheReportDto"
-                }
-              }
-            },
             "headers": {
               "X-Request-Id": {
                 "description": "Correlation id for this request",
@@ -1337,13 +1663,6 @@
         "responses": {
           "200": {
             "description": "Last warm-cache report (or null if never run).",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/WarmCacheStatusDto"
-                }
-              }
-            },
             "headers": {
               "X-Request-Id": {
                 "description": "Correlation id for this request",
@@ -2049,8 +2368,19 @@
           }
         ],
         "responses": {
-          "201": {
+          "200": {
             "description": "Round finalized successfully",
+            "headers": {
+              "X-Request-Id": {
+                "description": "Correlation id for this request",
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "201": {
+            "description": "",
             "content": {
               "application/json": {
                 "schema": {
@@ -2250,15 +2580,19 @@
           }
         },
         "responses": {
-          "201": {
+          "200": {
             "description": "Matching pool funded successfully",
-            "content": {
-              "application/json": {
+            "headers": {
+              "X-Request-Id": {
+                "description": "Correlation id for this request",
                 "schema": {
-                  "$ref": "#/components/schemas/FundPoolResponseDto"
+                  "type": "string"
                 }
               }
-            },
+            }
+          },
+          "201": {
+            "description": "",
             "headers": {
               "X-Request-Id": {
                 "description": "Correlation id for this request",
@@ -2451,15 +2785,19 @@
           }
         },
         "responses": {
-          "201": {
+          "200": {
             "description": "Project approved successfully",
-            "content": {
-              "application/json": {
+            "headers": {
+              "X-Request-Id": {
+                "description": "Correlation id for this request",
                 "schema": {
-                  "$ref": "#/components/schemas/GrantsSuccessResponseDto"
+                  "type": "string"
                 }
               }
-            },
+            }
+          },
+          "201": {
+            "description": "",
             "headers": {
               "X-Request-Id": {
                 "description": "Correlation id for this request",
@@ -2660,13 +2998,6 @@
         "responses": {
           "200": {
             "description": "Project removed successfully",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/GrantsSuccessResponseDto"
-                }
-              }
-            },
             "headers": {
               "X-Request-Id": {
                 "description": "Correlation id for this request",
@@ -2859,15 +3190,19 @@
           }
         },
         "responses": {
-          "201": {
+          "200": {
             "description": "Contribution recorded successfully",
-            "content": {
-              "application/json": {
+            "headers": {
+              "X-Request-Id": {
+                "description": "Correlation id for this request",
                 "schema": {
-                  "$ref": "#/components/schemas/GrantsSuccessResponseDto"
+                  "type": "string"
                 }
               }
-            },
+            }
+          },
+          "201": {
+            "description": "",
             "headers": {
               "X-Request-Id": {
                 "description": "Correlation id for this request",
@@ -3001,15 +3336,19 @@
           }
         },
         "responses": {
-          "201": {
+          "200": {
             "description": "Distribution completed successfully",
-            "content": {
-              "application/json": {
+            "headers": {
+              "X-Request-Id": {
+                "description": "Correlation id for this request",
                 "schema": {
-                  "$ref": "#/components/schemas/DistributeResponseDto"
+                  "type": "string"
                 }
               }
-            },
+            }
+          },
+          "201": {
+            "description": "",
             "headers": {
               "X-Request-Id": {
                 "description": "Correlation id for this request",
@@ -3328,7 +3667,6 @@
     },
     "/admin/audit/blockchain": {
       "get": {
-        "description": "Admin-only. Paginated audit trail of admin actions that touched on-chain contracts. Filter by actorId, endpoint and date range.",
         "operationId": "AdminAuditController_getLogs",
         "parameters": [
           {
@@ -3385,14 +3723,7 @@
         ],
         "responses": {
           "200": {
-            "description": "Page of audit log entries",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/AuditLogListResponseDto"
-                }
-              }
-            },
+            "description": "",
             "headers": {
               "X-Request-Id": {
                 "description": "Correlation id for this request",
@@ -3498,9 +3829,9 @@
             "JWT-auth": []
           }
         ],
-        "summary": "Query admin blockchain-action audit logs",
+        "summary": "GET /admin/audit/blockchain\nQuery audit logs. Supports filtering by actorId, endpoint, and date range.",
         "tags": [
-          "admin-audit"
+          "AdminAudit"
         ]
       }
     },
@@ -3710,13 +4041,6 @@
         "responses": {
           "200": {
             "description": "List of user reports",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ContentReportListResponseDto"
-                }
-              }
-            },
             "headers": {
               "X-Request-Id": {
                 "description": "Correlation id for this request",
@@ -3894,13 +4218,6 @@
         "responses": {
           "200": {
             "description": "List of all reports with pagination",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ContentReportListResponseDto"
-                }
-              }
-            },
             "headers": {
               "X-Request-Id": {
                 "description": "Correlation id for this request",
@@ -4019,13 +4336,6 @@
         "responses": {
           "200": {
             "description": "Moderation queue statistics",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ModerationStatsDto"
-                }
-              }
-            },
             "headers": {
               "X-Request-Id": {
                 "description": "Correlation id for this request",
@@ -4135,13 +4445,6 @@
         "responses": {
           "200": {
             "description": "Report details",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ContentReport"
-                }
-              }
-            },
             "headers": {
               "X-Request-Id": {
                 "description": "Correlation id for this request",
@@ -4305,13 +4608,6 @@
         "responses": {
           "200": {
             "description": "Report updated successfully",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ContentReport"
-                }
-              }
-            },
             "headers": {
               "X-Request-Id": {
                 "description": "Correlation id for this request",
@@ -4513,13 +4809,6 @@
         "responses": {
           "200": {
             "description": "Reviewer assigned successfully",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ContentReport"
-                }
-              }
-            },
             "headers": {
               "X-Request-Id": {
                 "description": "Correlation id for this request",
@@ -4713,13 +5002,6 @@
         "responses": {
           "201": {
             "description": "Comment successfully created",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ReviewComment"
-                }
-              }
-            },
             "headers": {
               "X-Request-Id": {
                 "description": "Correlation id for this request",
@@ -4895,13 +5177,6 @@
         "responses": {
           "201": {
             "description": "Decision successfully recorded",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ReviewDecisionHistory"
-                }
-              }
-            },
             "headers": {
               "X-Request-Id": {
                 "description": "Correlation id for this request",
@@ -5110,13 +5385,6 @@
         "responses": {
           "200": {
             "description": "Review history retrieved successfully",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ReviewHistoryResponseDto"
-                }
-              }
-            },
             "headers": {
               "X-Request-Id": {
                 "description": "Correlation id for this request",
@@ -5252,13 +5520,6 @@
         "responses": {
           "200": {
             "description": "Target review history retrieved successfully",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/TargetReviewHistoryResponseDto"
-                }
-              }
-            },
             "headers": {
               "X-Request-Id": {
                 "description": "Correlation id for this request",
@@ -5404,13 +5665,6 @@
         "responses": {
           "200": {
             "description": "Comment retrieved successfully",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ReviewComment"
-                }
-              }
-            },
             "headers": {
               "X-Request-Id": {
                 "description": "Correlation id for this request",
@@ -5556,13 +5810,6 @@
         "responses": {
           "200": {
             "description": "Decision retrieved successfully",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ReviewDecisionHistory"
-                }
-              }
-            },
             "headers": {
               "X-Request-Id": {
                 "description": "Correlation id for this request",
@@ -7465,7 +7712,7 @@
         ],
         "responses": {
           "200": {
-            "description": "Primary account updated",
+            "description": "",
             "headers": {
               "X-Request-Id": {
                 "description": "Correlation id for this request",
@@ -7628,8 +7875,7 @@
         "summary": "Set as primary account for current user",
         "tags": [
           "users"
-        ],
-        "x-no-response-body": true
+        ]
       }
     },
     "/auth/login": {
@@ -8571,13 +8817,6 @@
         "responses": {
           "200": {
             "description": "Logout from all devices successful",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/AuthMessageResponseDto"
-                }
-              }
-            },
             "headers": {
               "X-Request-Id": {
                 "description": "Correlation id for this request",
@@ -8946,15 +9185,36 @@
           }
         },
         "responses": {
-          "201": {
+          "200": {
             "description": "Authentication successful",
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/VerifyChallengeResponseDto"
+                  "properties": {
+                    "success": {
+                      "type": "boolean"
+                    },
+                    "token": {
+                      "type": "string"
+                    },
+                    "user": {
+                      "type": "object"
+                    }
+                  }
                 }
               }
             },
+            "headers": {
+              "X-Request-Id": {
+                "description": "Correlation id for this request",
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "201": {
+            "description": "",
             "headers": {
               "X-Request-Id": {
                 "description": "Correlation id for this request",
@@ -10108,78 +10368,16 @@
         "parameters": [
           {
             "name": "format",
-            "required": false,
+            "required": true,
             "in": "query",
-            "description": "Output format (defaults to prometheus)",
             "schema": {
-              "enum": [
-                "prometheus",
-                "json"
-              ],
               "type": "string"
             }
           }
         ],
         "responses": {
           "200": {
-            "description": "Metrics in Prometheus format (text/plain; version=0.0.4), or JSON when format=json",
-            "content": {
-              "text/plain": {
-                "schema": {
-                  "type": "string",
-                  "example": "# HELP http_requests_total Total number of HTTP requests\n# TYPE http_requests_total counter\nhttp_requests_total{method=\"GET\",route=\"/api/users\",status=\"200\"} 42"
-                }
-              },
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "description": "Metrics keyed by metric name",
-                  "additionalProperties": {
-                    "type": "object",
-                    "properties": {
-                      "name": {
-                        "type": "string",
-                        "example": "http_requests_total"
-                      },
-                      "help": {
-                        "type": "string",
-                        "example": "Total number of HTTP requests"
-                      },
-                      "type": {
-                        "type": "string",
-                        "example": "counter",
-                        "description": "counter | gauge | histogram | summary"
-                      },
-                      "aggregator": {
-                        "type": "string",
-                        "example": "sum"
-                      },
-                      "values": {
-                        "type": "array",
-                        "items": {
-                          "type": "object",
-                          "properties": {
-                            "value": {
-                              "type": "number",
-                              "example": 42
-                            },
-                            "labels": {
-                              "type": "object",
-                              "additionalProperties": {
-                                "type": "string"
-                              }
-                            },
-                            "metricName": {
-                              "type": "string"
-                            }
-                          }
-                        }
-                      }
-                    }
-                  }
-                }
-              }
-            },
+            "description": "Metrics in Prometheus format (text/plain; version=0.0.4)",
             "headers": {
               "X-Request-Id": {
                 "description": "Correlation id for this request",
@@ -10276,57 +10474,6 @@
         "responses": {
           "200": {
             "description": "Metrics in JSON format",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "description": "Metrics keyed by metric name",
-                  "additionalProperties": {
-                    "type": "object",
-                    "properties": {
-                      "name": {
-                        "type": "string",
-                        "example": "http_requests_total"
-                      },
-                      "help": {
-                        "type": "string",
-                        "example": "Total number of HTTP requests"
-                      },
-                      "type": {
-                        "type": "string",
-                        "example": "counter",
-                        "description": "counter | gauge | histogram | summary"
-                      },
-                      "aggregator": {
-                        "type": "string",
-                        "example": "sum"
-                      },
-                      "values": {
-                        "type": "array",
-                        "items": {
-                          "type": "object",
-                          "properties": {
-                            "value": {
-                              "type": "number",
-                              "example": 42
-                            },
-                            "labels": {
-                              "type": "object",
-                              "additionalProperties": {
-                                "type": "string"
-                              }
-                            },
-                            "metricName": {
-                              "type": "string"
-                            }
-                          }
-                        }
-                      }
-                    }
-                  }
-                }
-              }
-            },
             "headers": {
               "X-Request-Id": {
                 "description": "Correlation id for this request",
@@ -10405,13 +10552,6 @@
         "responses": {
           "200": {
             "description": "Health status",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/MetricsHealthDto"
-                }
-              }
-            },
             "headers": {
               "X-Request-Id": {
                 "description": "Correlation id for this request",
@@ -11496,13 +11636,6 @@
         "responses": {
           "200": {
             "description": "Asset allocation retrieved successfully",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/PortfolioAllocationResponseDto"
-                }
-              }
-            },
             "headers": {
               "X-Request-Id": {
                 "description": "Correlation id for this request",
@@ -12277,17 +12410,7 @@
         ],
         "responses": {
           "200": {
-            "description": "Most recent operations for the account (newest first), as returned by Horizon",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "array",
-                  "items": {
-                    "$ref": "#/components/schemas/AccountOperationDto"
-                  }
-                }
-              }
-            },
+            "description": "Account transactions retrieved successfully",
             "headers": {
               "X-Request-Id": {
                 "description": "Correlation id for this request",
@@ -14138,13 +14261,6 @@
         "responses": {
           "202": {
             "description": "Callback registered successfully",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/TransactionCallbackRegisteredDto"
-                }
-              }
-            },
             "headers": {
               "X-Request-Id": {
                 "description": "Correlation id for this request",
@@ -14247,7 +14363,7 @@
         },
         "summary": "Register a callback URL for transaction status updates",
         "tags": [
-          "transaction-status"
+          "Transaction Status"
         ]
       }
     },
@@ -14327,24 +14443,6 @@
             "name": "x-webhook-signature",
             "required": true,
             "in": "header",
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "X-Webhook-Nonce",
-            "in": "header",
-            "description": "Unique per-delivery identifier (UUID recommended); a nonce seen within the tolerance window is rejected as a replay",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "X-Webhook-Timestamp",
-            "in": "header",
-            "description": "Delivery time as Unix epoch milliseconds; rejected if in the future or older than the tolerance window (default 5 minutes)",
-            "required": true,
             "schema": {
               "type": "string"
             }
@@ -17390,13 +17488,6 @@
         "responses": {
           "200": {
             "description": "Returns reachable contract status for all configured contract IDs.",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ContractHealthReportDto"
-                }
-              }
-            },
             "headers": {
               "X-Request-Id": {
                 "description": "Correlation id for this request",
@@ -17475,13 +17566,6 @@
         "responses": {
           "200": {
             "description": "All dependencies are within their latency budgets, or only degraded.",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/LatencyBudgetReportDto"
-                }
-              }
-            },
             "headers": {
               "X-Request-Id": {
                 "description": "Correlation id for this request",
@@ -17560,13 +17644,6 @@
         "responses": {
           "200": {
             "description": "All checks passed, or only non-blocking warnings were raised (status \"pass\" or \"warn\").",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/DeploymentSmokeReportDto"
-                }
-              }
-            },
             "headers": {
               "X-Request-Id": {
                 "description": "Correlation id for this request",
@@ -17645,13 +17722,6 @@
         "responses": {
           "200": {
             "description": "All scheduled jobs succeeded within their expected intervals.",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/SchedulerHealthResponseDto"
-                }
-              }
-            },
             "headers": {
               "X-Request-Id": {
                 "description": "Correlation id for this request",
@@ -22553,13 +22623,6 @@
         "responses": {
           "200": {
             "description": "Paginated list of dead-lettered outbox events",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/OutboxDeadLetterListResponseDto"
-                }
-              }
-            },
             "headers": {
               "X-Request-Id": {
                 "description": "Correlation id for this request",
@@ -23672,20 +23735,6 @@
                 "description": "Correlation id for this request",
                 "schema": {
                   "type": "string"
-                }
-              },
-              "Content-Disposition": {
-                "description": "Attachment filename, e.g. attachment; filename=\"<type>_<YYYY-MM-DD>.csv\"",
-                "schema": {
-                  "type": "string"
-                }
-              }
-            },
-            "content": {
-              "text/csv": {
-                "schema": {
-                  "type": "string",
-                  "format": "binary"
                 }
               }
             }
@@ -26141,8 +26190,7 @@
         "summary": "Delete feature flag",
         "tags": [
           "feature-flags"
-        ],
-        "x-no-response-body": true
+        ]
       }
     },
     "/crowdfund/projects": {
@@ -27088,16 +27136,6 @@
         "responses": {
           "200": {
             "description": "Contributions list retrieved successfully",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "array",
-                  "items": {
-                    "$ref": "#/components/schemas/CrowdfundContributionRecordDto"
-                  }
-                }
-              }
-            },
             "headers": {
               "X-Request-Id": {
                 "description": "Correlation id for this request",
@@ -27229,7 +27267,6 @@
     },
     "/crowdfund-sync/sync": {
       "post": {
-        "description": "Fetches and processes vault events from the chain for the given ledger range (defaults to the stored cursor).",
         "operationId": "CrowdfundSyncController_syncVault",
         "parameters": [
           {
@@ -27255,7 +27292,7 @@
         },
         "responses": {
           "202": {
-            "description": "Sync run result",
+            "description": "",
             "content": {
               "application/json": {
                 "schema": {
@@ -27404,44 +27441,16 @@
             "JWT-auth": []
           }
         ],
-        "summary": "Sync a crowdfund vault",
+        "summary": "Sync a specific vault",
         "tags": [
-          "crowdfund-sync"
+          "CrowdfundSync"
         ]
       }
     },
     "/crowdfund-sync/events": {
       "get": {
-        "description": "Paginated list of indexed crowdfund vault events.",
         "operationId": "CrowdfundSyncController_listEvents",
         "parameters": [
-          {
-            "name": "sortBy",
-            "required": false,
-            "in": "query",
-            "schema": {
-              "default": "createdAt",
-              "type": "string",
-              "enum": [
-                "createdAt",
-                "ledgerSequence",
-                "processedAt"
-              ]
-            }
-          },
-          {
-            "name": "sortOrder",
-            "required": false,
-            "in": "query",
-            "schema": {
-              "default": "DESC",
-              "type": "string",
-              "enum": [
-                "ASC",
-                "DESC"
-              ]
-            }
-          },
           {
             "name": "vaultAddress",
             "required": false,
@@ -27508,18 +27517,27 @@
               "default": 20,
               "type": "number"
             }
+          },
+          {
+            "name": "sortBy",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "$ref": "#/components/schemas/Object"
+            }
+          },
+          {
+            "name": "sortOrder",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "$ref": "#/components/schemas/Object"
+            }
           }
         ],
         "responses": {
           "200": {
-            "description": "Page of vault events",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/VaultEventListResponseDto"
-                }
-              }
-            },
+            "description": "",
             "headers": {
               "X-Request-Id": {
                 "description": "Correlation id for this request",
@@ -27627,7 +27645,7 @@
         ],
         "summary": "List vault events",
         "tags": [
-          "crowdfund-sync"
+          "CrowdfundSync"
         ]
       }
     },
@@ -27639,7 +27657,6 @@
             "name": "vaultAddress",
             "required": true,
             "in": "path",
-            "description": "Vault contract address",
             "schema": {
               "type": "string"
             }
@@ -27647,7 +27664,7 @@
         ],
         "responses": {
           "200": {
-            "description": "Sync statistics for the vault",
+            "description": "",
             "content": {
               "application/json": {
                 "schema": {
@@ -27780,13 +27797,12 @@
         ],
         "summary": "Get vault sync statistics",
         "tags": [
-          "crowdfund-sync"
+          "CrowdfundSync"
         ]
       }
     },
     "/crowdfund-sync/vaults": {
       "post": {
-        "description": "Creates or updates the vault-to-project mapping.",
         "operationId": "CrowdfundSyncController_registerVault",
         "parameters": [
           {
@@ -27800,41 +27816,13 @@
             }
           }
         ],
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/RegisterVaultDto"
-              }
-            }
-          }
-        },
         "responses": {
           "201": {
-            "description": "Registered vault mapping",
+            "description": "",
             "content": {
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/CrowdfundVaultProject"
-                }
-              }
-            },
-            "headers": {
-              "X-Request-Id": {
-                "description": "Correlation id for this request",
-                "schema": {
-                  "type": "string"
-                }
-              }
-            }
-          },
-          "400": {
-            "description": "Malformed request or validation failure",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ErrorResponseDto"
                 }
               }
             },
@@ -27963,7 +27951,7 @@
         ],
         "summary": "Register a vault for syncing",
         "tags": [
-          "crowdfund-sync"
+          "CrowdfundSync"
         ]
       }
     },
@@ -27971,33 +27959,6 @@
       "get": {
         "operationId": "CrowdfundSyncController_listDeadLetters",
         "parameters": [
-          {
-            "name": "sortBy",
-            "required": false,
-            "in": "query",
-            "schema": {
-              "default": "createdAt",
-              "type": "string",
-              "enum": [
-                "createdAt",
-                "failureCount",
-                "updatedAt"
-              ]
-            }
-          },
-          {
-            "name": "sortOrder",
-            "required": false,
-            "in": "query",
-            "schema": {
-              "default": "DESC",
-              "type": "string",
-              "enum": [
-                "ASC",
-                "DESC"
-              ]
-            }
-          },
           {
             "name": "vaultAddress",
             "required": false,
@@ -28055,18 +28016,27 @@
               "default": 20,
               "type": "number"
             }
+          },
+          {
+            "name": "sortBy",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "$ref": "#/components/schemas/Object"
+            }
+          },
+          {
+            "name": "sortOrder",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "$ref": "#/components/schemas/Object"
+            }
           }
         ],
         "responses": {
           "200": {
-            "description": "Page of dead-letter entries",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/DeadLetterListResponseDto"
-                }
-              }
-            },
+            "description": "",
             "headers": {
               "X-Request-Id": {
                 "description": "Correlation id for this request",
@@ -28172,9 +28142,9 @@
             "JWT-auth": []
           }
         ],
-        "summary": "List dead-letter queue entries",
+        "summary": "List dead letter queue entries",
         "tags": [
-          "crowdfund-sync"
+          "CrowdfundSync"
         ]
       }
     },
@@ -28184,7 +28154,7 @@
         "parameters": [],
         "responses": {
           "200": {
-            "description": "Dead-letter statistics",
+            "description": "",
             "content": {
               "application/json": {
                 "schema": {
@@ -28279,9 +28249,9 @@
             "JWT-auth": []
           }
         ],
-        "summary": "Get dead-letter queue statistics",
+        "summary": "Get dead letter statistics",
         "tags": [
-          "crowdfund-sync"
+          "CrowdfundSync"
         ]
       }
     },
@@ -28293,7 +28263,6 @@
             "name": "id",
             "required": true,
             "in": "path",
-            "description": "Dead-letter entry ID",
             "schema": {
               "type": "string"
             }
@@ -28301,7 +28270,7 @@
         ],
         "responses": {
           "200": {
-            "description": "Dead-letter entry",
+            "description": "",
             "content": {
               "application/json": {
                 "schema": {
@@ -28432,9 +28401,9 @@
             "JWT-auth": []
           }
         ],
-        "summary": "Inspect a dead-letter entry",
+        "summary": "Inspect a dead letter entry",
         "tags": [
-          "crowdfund-sync"
+          "CrowdfundSync"
         ]
       }
     },
@@ -28446,7 +28415,6 @@
             "name": "id",
             "required": true,
             "in": "path",
-            "description": "Dead-letter entry ID",
             "schema": {
               "type": "string"
             }
@@ -28474,7 +28442,7 @@
         },
         "responses": {
           "202": {
-            "description": "Replay job queued",
+            "description": "",
             "content": {
               "application/json": {
                 "schema": {
@@ -28641,9 +28609,9 @@
             "JWT-auth": []
           }
         ],
-        "summary": "Replay a dead-letter event",
+        "summary": "Replay a dead letter event",
         "tags": [
-          "crowdfund-sync"
+          "CrowdfundSync"
         ]
       }
     },
@@ -28655,7 +28623,6 @@
             "name": "id",
             "required": true,
             "in": "path",
-            "description": "Dead-letter entry ID",
             "schema": {
               "type": "string"
             }
@@ -28683,14 +28650,7 @@
         },
         "responses": {
           "200": {
-            "description": "Resolution result",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/CrowdfundSyncResolveDeadLetterResponseDto"
-                }
-              }
-            },
+            "description": "",
             "headers": {
               "X-Request-Id": {
                 "description": "Correlation id for this request",
@@ -28850,39 +28810,21 @@
             "JWT-auth": []
           }
         ],
-        "summary": "Mark a dead-letter entry as resolved",
+        "summary": "Resolve a dead letter entry",
         "tags": [
-          "crowdfund-sync"
+          "CrowdfundSync"
         ]
       }
     },
     "/soroban-events/ingest": {
       "post": {
-        "description": "Accepts Soroban events from the indexer or cron service for processing. Events are queued asynchronously and their status can be checked via the returned event ID. Requests must be HMAC-SHA256 signed with SOROBAN_INGEST_SECRET over `${timestamp}.${nonce}.${rawBody}` (hex digest in the signature header); the timestamp must be within the configured tolerance (default 5 minutes).",
+        "description": "Accepts Soroban events from the indexer or cron service for processing. Events are queued asynchronously and their status can be checked via the returned event ID. This endpoint requires the SOROBAN_INGEST_SECRET header for authentication.",
         "operationId": "SorobanEventsController_ingest",
         "parameters": [
           {
-            "name": "x-soroban-nonce",
+            "name": "x-ingest-secret",
             "in": "header",
-            "description": "Unique per-request nonce included in the signed payload",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "x-soroban-timestamp",
-            "in": "header",
-            "description": "Unix epoch milliseconds when the request was signed; rejected if in the future or older than the tolerance window",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "x-soroban-signature",
-            "in": "header",
-            "description": "Hex-encoded HMAC-SHA256 of `${timestamp}.${nonce}.${rawBody}` keyed with SOROBAN_INGEST_SECRET",
+            "description": "Secret token for authenticating ingest requests (configured via SOROBAN_INGEST_SECRET environment variable)",
             "required": true,
             "schema": {
               "type": "string"
@@ -28948,7 +28890,7 @@
             }
           },
           "401": {
-            "description": "Unauthorized - Missing or invalid signature, timestamp or nonce header",
+            "description": "Unauthorized - Missing or invalid x-ingest-secret header",
             "content": {
               "application/json": {
                 "schema": {
@@ -33533,8 +33475,19 @@
           }
         ],
         "responses": {
-          "204": {
+          "24": {
             "description": "Deployment manifest deleted successfully",
+            "headers": {
+              "X-Request-Id": {
+                "description": "Correlation id for this request",
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "204": {
+            "description": "",
             "headers": {
               "X-Request-Id": {
                 "description": "Correlation id for this request",
@@ -33909,7 +33862,13 @@
             "in": "query",
             "description": "Filter by report status (applies only when domain=moderation).",
             "schema": {
-              "$ref": "#/components/schemas/ReportStatus"
+              "type": "string",
+              "enum": [
+                "pending",
+                "under_review",
+                "resolved",
+                "dismissed"
+              ]
             }
           },
           {
@@ -35549,13 +35508,6 @@
         "responses": {
           "200": {
             "description": "Job cancelled",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/CancelRebuildJobResponseDto"
-                }
-              }
-            },
             "headers": {
               "X-Request-Id": {
                 "description": "Correlation id for this request",
@@ -35748,13 +35700,6 @@
         "responses": {
           "200": {
             "description": "Jobs cleaned up",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/CleanupRebuildJobsResponseDto"
-                }
-              }
-            },
             "headers": {
               "X-Request-Id": {
                 "description": "Correlation id for this request",
@@ -35910,13 +35855,6 @@
         "responses": {
           "200": {
             "description": "Datasets listed",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/RebuildDatasetListResponseDto"
-                }
-              }
-            },
             "headers": {
               "X-Request-Id": {
                 "description": "Correlation id for this request",
@@ -37393,34 +37331,6 @@
       }
     },
     "schemas": {
-      "SubmitDataResponseDto": {
-        "type": "object",
-        "properties": {
-          "message": {
-            "type": "string",
-            "description": "Confirmation message",
-            "example": "Data submitted successfully"
-          },
-          "timestamp": {
-            "type": "string",
-            "description": "Server time the payload was received",
-            "format": "date-time",
-            "example": "2026-01-01T00:00:00.000Z"
-          },
-          "receivedData": {
-            "type": "object",
-            "description": "The request body, echoed back unchanged",
-            "additionalProperties": true,
-            "example": {
-              "foo": "bar"
-            }
-          }
-        },
-        "required": [
-          "message",
-          "timestamp"
-        ]
-      },
       "AnalyzeDto": {
         "type": "object",
         "properties": {
@@ -37682,123 +37592,7 @@
       },
       "ForceRefreshDto": {
         "type": "object",
-        "properties": {
-          "requestedBy": {
-            "type": "string",
-            "description": "Optional identifier recorded in audit logs.",
-            "example": "ops@lumenpulse.io"
-          }
-        }
-      },
-      "PreloadResultDto": {
-        "type": "object",
-        "properties": {
-          "route": {
-            "type": "string",
-            "description": "Route name",
-            "example": "news:latest"
-          },
-          "cacheKey": {
-            "type": "string",
-            "description": "Cache key written",
-            "example": "news:latest"
-          },
-          "success": {
-            "type": "boolean",
-            "description": "Whether the preload succeeded",
-            "example": true
-          },
-          "durationMs": {
-            "type": "number",
-            "description": "Preload duration in ms",
-            "example": 42
-          },
-          "error": {
-            "type": "string",
-            "description": "Error message when the preload failed"
-          }
-        },
-        "required": [
-          "route",
-          "cacheKey",
-          "success",
-          "durationMs"
-        ]
-      },
-      "WarmCacheReportDto": {
-        "type": "object",
-        "properties": {
-          "triggeredAt": {
-            "type": "string",
-            "description": "ISO timestamp when the cycle was triggered",
-            "example": "2026-01-01T00:00:00.000Z"
-          },
-          "totalRoutes": {
-            "type": "number",
-            "description": "Number of registered routes",
-            "example": 5
-          },
-          "succeeded": {
-            "type": "number",
-            "description": "Routes preloaded successfully",
-            "example": 5
-          },
-          "failed": {
-            "type": "number",
-            "description": "Routes that failed to preload",
-            "example": 0
-          },
-          "skipped": {
-            "type": "number",
-            "description": "Routes skipped (e.g. Redis unhealthy)",
-            "example": 0
-          },
-          "durationMs": {
-            "type": "number",
-            "description": "Total cycle duration in ms",
-            "example": 120
-          },
-          "results": {
-            "description": "Per-route results",
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/PreloadResultDto"
-            }
-          }
-        },
-        "required": [
-          "triggeredAt",
-          "totalRoutes",
-          "succeeded",
-          "failed",
-          "skipped",
-          "durationMs",
-          "results"
-        ]
-      },
-      "WarmCacheStatusDto": {
-        "type": "object",
-        "properties": {
-          "lastRunAt": {
-            "type": "string",
-            "nullable": true,
-            "description": "ISO timestamp of the last completed cycle, or null if never run",
-            "example": "2026-01-01T00:00:00.000Z"
-          },
-          "report": {
-            "nullable": true,
-            "description": "Last refresh report, or null if never run",
-            "allOf": [
-              {
-                "$ref": "#/components/schemas/WarmCacheReportDto"
-              }
-            ]
-          }
-        },
-        "required": [
-          "lastRunAt",
-          "report"
-        ]
+        "properties": {}
       },
       "RoundDto": {
         "type": "object",
@@ -38129,25 +37923,6 @@
           "amount"
         ]
       },
-      "FundPoolResponseDto": {
-        "type": "object",
-        "properties": {
-          "roundId": {
-            "type": "number",
-            "description": "ID of the funded round",
-            "example": 1
-          },
-          "newBalance": {
-            "type": "string",
-            "description": "Matching pool balance after funding (stroops, as string)",
-            "example": "1500000000"
-          }
-        },
-        "required": [
-          "roundId",
-          "newBalance"
-        ]
-      },
       "ApproveProjectDto": {
         "type": "object",
         "properties": {
@@ -38167,19 +37942,6 @@
         "required": [
           "roundId",
           "projectId"
-        ]
-      },
-      "GrantsSuccessResponseDto": {
-        "type": "object",
-        "properties": {
-          "success": {
-            "type": "boolean",
-            "description": "Always true when the operation succeeded",
-            "example": true
-          }
-        },
-        "required": [
-          "success"
         ]
       },
       "RecordContributionDto": {
@@ -38239,52 +38001,6 @@
         "required": [
           "roundId",
           "projectOwners"
-        ]
-      },
-      "DistributionAllocationDto": {
-        "type": "object",
-        "properties": {
-          "projectId": {
-            "type": "number",
-            "description": "Project ID",
-            "example": 42
-          },
-          "owner": {
-            "type": "string",
-            "description": "Stellar public key of the project owner receiving funds",
-            "example": "G...OWNER"
-          },
-          "amount": {
-            "type": "string",
-            "description": "Allocated amount (stroops, as string)",
-            "example": "750000000"
-          }
-        },
-        "required": [
-          "projectId",
-          "owner",
-          "amount"
-        ]
-      },
-      "DistributeResponseDto": {
-        "type": "object",
-        "properties": {
-          "totalDistributed": {
-            "type": "string",
-            "description": "Total amount distributed across all projects",
-            "example": "1500000000"
-          },
-          "allocations": {
-            "description": "Per-project allocations",
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/DistributionAllocationDto"
-            }
-          }
-        },
-        "required": [
-          "totalDistributed",
-          "allocations"
         ]
       },
       "LeaderboardEntryDto": {
@@ -38382,111 +38098,6 @@
           "poolBalance",
           "page",
           "limit"
-        ]
-      },
-      "AdminBlockchainAuditLog": {
-        "type": "object",
-        "properties": {
-          "id": {
-            "type": "string"
-          },
-          "actorId": {
-            "type": "string",
-            "description": "User ID of the admin who triggered the action"
-          },
-          "actorEmail": {
-            "type": "string",
-            "nullable": true,
-            "description": "Actor email for readability (non-sensitive label)"
-          },
-          "endpoint": {
-            "type": "string",
-            "description": "HTTP method + path e.g. \"POST /grants/rounds\""
-          },
-          "targetContract": {
-            "type": "string",
-            "nullable": true,
-            "description": "Target smart contract address or identifier.\nDerived from the request body or params."
-          },
-          "paramsSummary": {
-            "type": "object",
-            "nullable": true,
-            "description": "JSON summary of request params with sensitive fields redacted."
-          },
-          "txHash": {
-            "type": "string",
-            "nullable": true,
-            "description": "Blockchain transaction hash returned by the action (if any)."
-          },
-          "responseStatus": {
-            "type": "number",
-            "nullable": true,
-            "description": "HTTP status code of the response"
-          },
-          "createdAt": {
-            "format": "date-time",
-            "type": "string"
-          }
-        },
-        "required": [
-          "id",
-          "actorId",
-          "actorEmail",
-          "endpoint",
-          "targetContract",
-          "paramsSummary",
-          "txHash",
-          "responseStatus",
-          "createdAt"
-        ]
-      },
-      "AuditLogListMetaDto": {
-        "type": "object",
-        "properties": {
-          "total": {
-            "type": "number",
-            "description": "Total number of matching log entries",
-            "example": 42
-          },
-          "page": {
-            "type": "number",
-            "description": "One-based page number",
-            "example": 1
-          },
-          "limit": {
-            "type": "number",
-            "description": "Page size",
-            "example": 20
-          }
-        },
-        "required": [
-          "total",
-          "page",
-          "limit"
-        ]
-      },
-      "AuditLogListResponseDto": {
-        "type": "object",
-        "properties": {
-          "data": {
-            "description": "Audit log entries on this page, newest first",
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/AdminBlockchainAuditLog"
-            }
-          },
-          "meta": {
-            "description": "Pagination metadata",
-            "allOf": [
-              {
-                "$ref": "#/components/schemas/AuditLogListMetaDto"
-              }
-            ]
-          }
-        },
-        "required": [
-          "data",
-          "meta"
         ]
       },
       "ReportType": {
@@ -38614,6 +38225,9 @@
           "email": {
             "type": "string"
           },
+          "passwordHash": {
+            "type": "string"
+          },
           "firstName": {
             "type": "string"
           },
@@ -38646,6 +38260,10 @@
           "twoFactorEnabled": {
             "type": "boolean"
           },
+          "twoFactorSecret": {
+            "type": "string",
+            "nullable": true
+          },
           "stellarAccounts": {
             "type": "array",
             "items": {
@@ -38664,6 +38282,7 @@
         "required": [
           "id",
           "email",
+          "passwordHash",
           "firstName",
           "lastName",
           "displayName",
@@ -38673,6 +38292,7 @@
           "role",
           "preferences",
           "twoFactorEnabled",
+          "twoFactorSecret",
           "stellarAccounts",
           "createdAt",
           "updatedAt"
@@ -38751,82 +38371,6 @@
           "updatedAt"
         ]
       },
-      "ContentReportListResponseDto": {
-        "type": "object",
-        "properties": {
-          "reports": {
-            "description": "Content reports, newest first",
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/ContentReport"
-            }
-          },
-          "total": {
-            "type": "number",
-            "description": "Total number of matching reports",
-            "example": 42
-          },
-          "page": {
-            "type": "number",
-            "description": "Current page (1-indexed)",
-            "example": 1
-          },
-          "limit": {
-            "type": "number",
-            "description": "Page size",
-            "example": 20
-          },
-          "totalPages": {
-            "type": "number",
-            "description": "Total number of pages",
-            "example": 3
-          }
-        },
-        "required": [
-          "reports",
-          "total",
-          "page",
-          "limit",
-          "totalPages"
-        ]
-      },
-      "ModerationStatsDto": {
-        "type": "object",
-        "properties": {
-          "totalReports": {
-            "type": "number",
-            "description": "Total number of reports",
-            "example": 42
-          },
-          "pendingReports": {
-            "type": "number",
-            "description": "Reports awaiting review",
-            "example": 10
-          },
-          "underReviewReports": {
-            "type": "number",
-            "description": "Reports currently under review",
-            "example": 5
-          },
-          "resolvedReports": {
-            "type": "number",
-            "description": "Reports resolved",
-            "example": 20
-          },
-          "dismissedReports": {
-            "type": "number",
-            "description": "Reports dismissed",
-            "example": 7
-          }
-        },
-        "required": [
-          "totalReports",
-          "pendingReports",
-          "underReviewReports",
-          "resolvedReports",
-          "dismissedReports"
-        ]
-      },
       "UpdateReportDto": {
         "type": "object",
         "properties": {
@@ -38897,58 +38441,6 @@
           "content"
         ]
       },
-      "ReviewComment": {
-        "type": "object",
-        "properties": {
-          "id": {
-            "type": "string"
-          },
-          "targetId": {
-            "type": "string"
-          },
-          "targetType": {
-            "type": "string"
-          },
-          "visibility": {
-            "enum": [
-              "public",
-              "internal"
-            ],
-            "type": "string"
-          },
-          "authorId": {
-            "type": "string"
-          },
-          "author": {
-            "$ref": "#/components/schemas/User"
-          },
-          "content": {
-            "type": "string"
-          },
-          "parentId": {
-            "type": "string"
-          },
-          "createdAt": {
-            "format": "date-time",
-            "type": "string"
-          },
-          "updatedAt": {
-            "format": "date-time",
-            "type": "string"
-          }
-        },
-        "required": [
-          "id",
-          "targetId",
-          "targetType",
-          "visibility",
-          "authorId",
-          "author",
-          "content",
-          "createdAt",
-          "updatedAt"
-        ]
-      },
       "CreateReviewDecisionDto": {
         "type": "object",
         "properties": {
@@ -38997,127 +38489,6 @@
           "targetId",
           "targetType",
           "decisionType"
-        ]
-      },
-      "ReviewDecisionHistory": {
-        "type": "object",
-        "properties": {
-          "id": {
-            "type": "string"
-          },
-          "targetId": {
-            "type": "string"
-          },
-          "targetType": {
-            "type": "string"
-          },
-          "decisionType": {
-            "enum": [
-              "approved",
-              "rejected",
-              "deferred",
-              "escalated"
-            ],
-            "type": "string"
-          },
-          "reviewerId": {
-            "type": "string"
-          },
-          "reviewer": {
-            "$ref": "#/components/schemas/User"
-          },
-          "rationale": {
-            "type": "string"
-          },
-          "metadata": {
-            "type": "object"
-          },
-          "previousDecision": {
-            "type": "string"
-          },
-          "createdAt": {
-            "format": "date-time",
-            "type": "string"
-          }
-        },
-        "required": [
-          "id",
-          "targetId",
-          "targetType",
-          "decisionType",
-          "reviewerId",
-          "reviewer",
-          "createdAt"
-        ]
-      },
-      "ReviewHistoryResponseDto": {
-        "type": "object",
-        "properties": {
-          "comments": {
-            "description": "Review comments on the target (internal comments are only included for admins)",
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/ReviewComment"
-            }
-          },
-          "decisions": {
-            "description": "Review decisions recorded for the target",
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/ReviewDecisionHistory"
-            }
-          },
-          "total": {
-            "type": "number",
-            "description": "Total number of matching comments plus decisions",
-            "example": 12
-          },
-          "page": {
-            "type": "number",
-            "description": "Current page (1-indexed)",
-            "example": 1
-          },
-          "limit": {
-            "type": "number",
-            "description": "Page size",
-            "example": 20
-          },
-          "totalPages": {
-            "type": "number",
-            "description": "Total number of pages (based on the larger of the comment and decision counts)",
-            "example": 1
-          }
-        },
-        "required": [
-          "comments",
-          "decisions",
-          "total",
-          "page",
-          "limit",
-          "totalPages"
-        ]
-      },
-      "TargetReviewHistoryResponseDto": {
-        "type": "object",
-        "properties": {
-          "comments": {
-            "description": "Review comments on the target (internal comments are only included for admins)",
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/ReviewComment"
-            }
-          },
-          "decisions": {
-            "description": "Review decisions recorded for the target",
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/ReviewDecisionHistory"
-            }
-          }
-        },
-        "required": [
-          "comments",
-          "decisions"
         ]
       },
       "ProfileResponseDto": {
@@ -39431,19 +38802,6 @@
           "refreshToken"
         ]
       },
-      "AuthMessageResponseDto": {
-        "type": "object",
-        "properties": {
-          "message": {
-            "type": "string",
-            "description": "Human-readable result message",
-            "example": "Successfully logged out from all devices"
-          }
-        },
-        "required": [
-          "message"
-        ]
-      },
       "VerifyChallengeDto": {
         "type": "object",
         "properties": {
@@ -39462,60 +38820,6 @@
         "required": [
           "publicKey",
           "signedChallenge"
-        ]
-      },
-      "StellarAuthUserDto": {
-        "type": "object",
-        "properties": {
-          "id": {
-            "type": "string",
-            "description": "User ID",
-            "example": "550e8400-e29b-41d4-a716-446655440000"
-          },
-          "createdAt": {
-            "type": "string",
-            "description": "When the user account was created",
-            "example": "2026-01-15T10:30:00.000Z",
-            "format": "date-time"
-          }
-        },
-        "required": [
-          "id",
-          "createdAt"
-        ]
-      },
-      "VerifyChallengeResponseDto": {
-        "type": "object",
-        "properties": {
-          "success": {
-            "type": "boolean",
-            "description": "Whether authentication succeeded",
-            "example": true
-          },
-          "token": {
-            "type": "string",
-            "description": "JWT access token",
-            "example": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
-          },
-          "refresh_token": {
-            "type": "string",
-            "description": "Refresh token for obtaining new access tokens",
-            "example": "a1b2c3d4e5f6..."
-          },
-          "user": {
-            "description": "Authenticated user",
-            "allOf": [
-              {
-                "$ref": "#/components/schemas/StellarAuthUserDto"
-              }
-            ]
-          }
-        },
-        "required": [
-          "success",
-          "token",
-          "refresh_token",
-          "user"
         ]
       },
       "SessionDto": {
@@ -39655,31 +38959,6 @@
         },
         "required": [
           "token"
-        ]
-      },
-      "MetricsHealthDto": {
-        "type": "object",
-        "properties": {
-          "status": {
-            "type": "string",
-            "description": "Health status",
-            "example": "ok"
-          },
-          "timestamp": {
-            "type": "string",
-            "description": "ISO timestamp of the check",
-            "example": "2026-01-01T00:00:00.000Z"
-          },
-          "uptime": {
-            "type": "number",
-            "description": "Process uptime in seconds",
-            "example": 1234.56
-          }
-        },
-        "required": [
-          "status",
-          "timestamp",
-          "uptime"
         ]
       },
       "AssetBalanceWithCurrencyDto": {
@@ -40103,65 +39382,6 @@
           "windows"
         ]
       },
-      "AssetAllocationItemDto": {
-        "type": "object",
-        "properties": {
-          "assetCode": {
-            "type": "string",
-            "description": "Asset code",
-            "example": "XLM"
-          },
-          "assetIssuer": {
-            "type": "string",
-            "nullable": true,
-            "description": "Asset issuer account, or null for the native asset",
-            "example": null
-          },
-          "amount": {
-            "type": "string",
-            "description": "Aggregated balance across linked accounts",
-            "example": "1500.0000000"
-          },
-          "valueUsd": {
-            "type": "number",
-            "description": "Value in USD",
-            "example": 180.25
-          },
-          "percentage": {
-            "type": "number",
-            "description": "Share of total portfolio value (0-100)",
-            "example": 62.5
-          }
-        },
-        "required": [
-          "assetCode",
-          "assetIssuer",
-          "amount",
-          "valueUsd",
-          "percentage"
-        ]
-      },
-      "PortfolioAllocationResponseDto": {
-        "type": "object",
-        "properties": {
-          "totalValueUsd": {
-            "type": "number",
-            "description": "Total portfolio value in USD",
-            "example": 288.4
-          },
-          "allocation": {
-            "description": "Per-asset allocation",
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/AssetAllocationItemDto"
-            }
-          }
-        },
-        "required": [
-          "totalValueUsd",
-          "allocation"
-        ]
-      },
       "CreatePortfolioAnomalyDto": {
         "type": "object",
         "properties": {
@@ -40350,76 +39570,6 @@
         "required": [
           "publicKey",
           "balances"
-        ]
-      },
-      "AccountOperationDto": {
-        "type": "object",
-        "properties": {
-          "id": {
-            "type": "string",
-            "description": "Horizon operation ID",
-            "example": "123456789012345678"
-          },
-          "paging_token": {
-            "type": "string",
-            "description": "Cursor for paging through Horizon results",
-            "example": "123456789012345678"
-          },
-          "transaction_successful": {
-            "type": "boolean",
-            "description": "Whether the containing transaction succeeded",
-            "example": true
-          },
-          "source_account": {
-            "type": "string",
-            "description": "Account that originated the operation",
-            "example": "GA5ZSEJYB37JRC5AVCIA5MOP4RHTM335X2KGX3IHOJAPP5RE34K4KZVN"
-          },
-          "type": {
-            "type": "string",
-            "description": "Operation type name",
-            "example": "payment"
-          },
-          "type_i": {
-            "type": "number",
-            "description": "Numeric operation type",
-            "example": 1
-          },
-          "created_at": {
-            "type": "string",
-            "description": "When the operation was applied (ISO 8601)",
-            "example": "2026-01-01T00:00:00Z"
-          },
-          "transaction_hash": {
-            "type": "string",
-            "description": "Hash of the containing transaction",
-            "example": "a1b2c3d4e5f6..."
-          },
-          "_links": {
-            "type": "object",
-            "description": "Horizon HAL links (self, transaction, effects, succeeds, precedes)",
-            "additionalProperties": {
-              "type": "object",
-              "properties": {
-                "href": {
-                  "type": "string"
-                },
-                "templated": {
-                  "type": "boolean"
-                }
-              }
-            }
-          }
-        },
-        "required": [
-          "id",
-          "paging_token",
-          "transaction_successful",
-          "source_account",
-          "type",
-          "type_i",
-          "created_at",
-          "transaction_hash"
         ]
       },
       "TransactionDto": {
@@ -40922,19 +40072,6 @@
         "required": [
           "transactionHash",
           "callbackUrl"
-        ]
-      },
-      "TransactionCallbackRegisteredDto": {
-        "type": "object",
-        "properties": {
-          "message": {
-            "type": "string",
-            "description": "Confirmation message",
-            "example": "Callback registered successfully"
-          }
-        },
-        "required": [
-          "message"
         ]
       },
       "StellarContractsDto": {
@@ -41679,499 +40816,6 @@
         },
         "required": [
           "deviceId"
-        ]
-      },
-      "ContractHealthSummaryDto": {
-        "type": "object",
-        "properties": {
-          "total": {
-            "type": "number",
-            "example": 6
-          },
-          "reachable": {
-            "type": "number",
-            "example": 6
-          },
-          "misconfigured": {
-            "type": "number",
-            "example": 0
-          },
-          "unreachable": {
-            "type": "number",
-            "example": 0
-          }
-        },
-        "required": [
-          "total",
-          "reachable",
-          "misconfigured",
-          "unreachable"
-        ]
-      },
-      "ContractReadMethodHealthDto": {
-        "type": "object",
-        "properties": {
-          "method": {
-            "type": "string",
-            "description": "Read-only contract method probed",
-            "example": "get_admin"
-          },
-          "status": {
-            "type": "string",
-            "description": "Probe result",
-            "enum": [
-              "ok",
-              "failed",
-              "restore_required"
-            ],
-            "example": "ok"
-          },
-          "returnType": {
-            "type": "string",
-            "description": "Returned ScVal type",
-            "example": "address"
-          },
-          "message": {
-            "type": "string",
-            "description": "Failure explanation"
-          }
-        },
-        "required": [
-          "method",
-          "status"
-        ]
-      },
-      "ContractHealthResultDto": {
-        "type": "object",
-        "properties": {
-          "name": {
-            "type": "string",
-            "description": "Logical contract name",
-            "enum": [
-              "lumenToken",
-              "crowdfundVault",
-              "projectRegistry",
-              "contributorRegistry",
-              "matchingPool",
-              "treasury"
-            ],
-            "example": "crowdfundVault"
-          },
-          "envVar": {
-            "type": "string",
-            "description": "Environment variable holding the contract ID",
-            "example": "STELLAR_CONTRACT_CROWDFUND_VAULT"
-          },
-          "configured": {
-            "type": "boolean",
-            "description": "Whether the contract ID is configured",
-            "example": true
-          },
-          "status": {
-            "type": "string",
-            "description": "Contract status",
-            "enum": [
-              "reachable",
-              "misconfigured",
-              "unreachable"
-            ],
-            "example": "reachable"
-          },
-          "contractId": {
-            "type": "string",
-            "description": "Configured contract ID"
-          },
-          "readMethods": {
-            "description": "Per-method read probe results",
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/ContractReadMethodHealthDto"
-            }
-          },
-          "message": {
-            "type": "string",
-            "description": "Failure explanation"
-          }
-        },
-        "required": [
-          "name",
-          "envVar",
-          "configured",
-          "status",
-          "readMethods"
-        ]
-      },
-      "ContractHealthReportDto": {
-        "type": "object",
-        "properties": {
-          "status": {
-            "type": "string",
-            "description": "Overall status",
-            "enum": [
-              "ok",
-              "error"
-            ],
-            "example": "ok"
-          },
-          "summary": {
-            "$ref": "#/components/schemas/ContractHealthSummaryDto"
-          },
-          "network": {
-            "type": "string",
-            "enum": [
-              "testnet",
-              "mainnet"
-            ],
-            "example": "testnet"
-          },
-          "checkedAt": {
-            "type": "string",
-            "description": "ISO timestamp of the check",
-            "example": "2026-01-01T00:00:00.000Z"
-          },
-          "contracts": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/ContractHealthResultDto"
-            }
-          }
-        },
-        "required": [
-          "status",
-          "summary",
-          "network",
-          "checkedAt",
-          "contracts"
-        ]
-      },
-      "LatencyBudgetThresholdDto": {
-        "type": "object",
-        "properties": {
-          "degradedMs": {
-            "type": "number",
-            "description": "Latency (ms) above which the dependency is degraded",
-            "example": 1000
-          },
-          "hardDownMs": {
-            "type": "number",
-            "description": "Latency (ms) above which the dependency is hard-down",
-            "example": 5000
-          }
-        },
-        "required": [
-          "degradedMs",
-          "hardDownMs"
-        ]
-      },
-      "DependencyLatencyResultDto": {
-        "type": "object",
-        "properties": {
-          "name": {
-            "type": "string",
-            "description": "Dependency name",
-            "example": "horizon"
-          },
-          "url": {
-            "type": "string",
-            "description": "URL that was probed",
-            "example": "https://horizon-testnet.stellar.org"
-          },
-          "latencyMs": {
-            "type": "number",
-            "description": "Measured round-trip time in ms; absent when unreachable",
-            "example": 180
-          },
-          "thresholds": {
-            "$ref": "#/components/schemas/LatencyBudgetThresholdDto"
-          },
-          "state": {
-            "type": "string",
-            "enum": [
-              "ok",
-              "degraded",
-              "hard_down"
-            ],
-            "example": "ok"
-          },
-          "message": {
-            "type": "string",
-            "description": "Human-readable explanation"
-          }
-        },
-        "required": [
-          "name",
-          "url",
-          "thresholds",
-          "state"
-        ]
-      },
-      "LatencyBudgetReportDto": {
-        "type": "object",
-        "properties": {
-          "overallState": {
-            "type": "string",
-            "description": "Worst state across all dependencies",
-            "enum": [
-              "ok",
-              "degraded",
-              "hard_down"
-            ],
-            "example": "ok"
-          },
-          "checkedAt": {
-            "type": "string",
-            "description": "ISO timestamp of the check",
-            "example": "2026-01-01T00:00:00.000Z"
-          },
-          "dependencies": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/DependencyLatencyResultDto"
-            }
-          }
-        },
-        "required": [
-          "overallState",
-          "checkedAt",
-          "dependencies"
-        ]
-      },
-      "DeploymentSmokeSummaryDto": {
-        "type": "object",
-        "properties": {
-          "total": {
-            "type": "number",
-            "example": 12
-          },
-          "passed": {
-            "type": "number",
-            "example": 11
-          },
-          "warned": {
-            "type": "number",
-            "example": 1
-          },
-          "failed": {
-            "type": "number",
-            "example": 0
-          }
-        },
-        "required": [
-          "total",
-          "passed",
-          "warned",
-          "failed"
-        ]
-      },
-      "DeploymentSmokeCheckDto": {
-        "type": "object",
-        "properties": {
-          "id": {
-            "type": "string",
-            "description": "Stable check identifier",
-            "example": "dependency.database"
-          },
-          "category": {
-            "type": "string",
-            "enum": [
-              "config",
-              "dependency",
-              "contract"
-            ],
-            "example": "dependency"
-          },
-          "status": {
-            "type": "string",
-            "enum": [
-              "pass",
-              "warn",
-              "fail"
-            ],
-            "example": "pass"
-          },
-          "message": {
-            "type": "string",
-            "description": "Fixed, non-sensitive explanation",
-            "example": "Database reachable"
-          }
-        },
-        "required": [
-          "id",
-          "category",
-          "status",
-          "message"
-        ]
-      },
-      "DeploymentSmokeReportDto": {
-        "type": "object",
-        "properties": {
-          "status": {
-            "type": "string",
-            "description": "Worst status across all checks",
-            "enum": [
-              "pass",
-              "warn",
-              "fail"
-            ],
-            "example": "pass"
-          },
-          "ready": {
-            "type": "boolean",
-            "description": "True unless something failed",
-            "example": true
-          },
-          "checkedAt": {
-            "type": "string",
-            "example": "2026-01-01T00:00:00.000Z"
-          },
-          "durationMs": {
-            "type": "number",
-            "example": 350
-          },
-          "network": {
-            "type": "string",
-            "example": "testnet"
-          },
-          "environment": {
-            "type": "string",
-            "example": "production"
-          },
-          "summary": {
-            "$ref": "#/components/schemas/DeploymentSmokeSummaryDto"
-          },
-          "checks": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/DeploymentSmokeCheckDto"
-            }
-          }
-        },
-        "required": [
-          "status",
-          "ready",
-          "checkedAt",
-          "durationMs",
-          "network",
-          "environment",
-          "summary",
-          "checks"
-        ]
-      },
-      "SchedulerJobStatusDto": {
-        "type": "object",
-        "properties": {
-          "job": {
-            "type": "string",
-            "description": "Job name",
-            "example": "news-ingestion"
-          },
-          "description": {
-            "type": "string",
-            "description": "Human-readable job description",
-            "example": "Fetches latest news articles"
-          },
-          "lastStart": {
-            "type": "string",
-            "nullable": true,
-            "description": "ISO timestamp of the most recent run start, or null if never run",
-            "example": "2026-01-01T00:00:00.000Z"
-          },
-          "lastSuccess": {
-            "type": "string",
-            "nullable": true,
-            "description": "ISO timestamp of the most recent successful run, or null",
-            "example": "2026-01-01T00:00:05.000Z"
-          },
-          "lastFailure": {
-            "type": "string",
-            "nullable": true,
-            "description": "ISO timestamp of the most recent failed run, or null",
-            "example": null
-          },
-          "lastDurationMs": {
-            "type": "number",
-            "nullable": true,
-            "description": "Duration in ms of the most recent completed run, or null",
-            "example": 5000
-          },
-          "expectedIntervalMs": {
-            "type": "number",
-            "description": "Expected maximum interval between successful runs (ms)",
-            "example": 3600000
-          },
-          "stale": {
-            "type": "boolean",
-            "description": "True when the job has not succeeded within its expected interval",
-            "example": false
-          },
-          "staleReason": {
-            "type": "string",
-            "description": "Machine-readable reason for staleness, or null when healthy",
-            "enum": [
-              "never-succeeded",
-              "last-success-too-old"
-            ],
-            "nullable": true,
-            "example": null
-          }
-        },
-        "required": [
-          "job",
-          "description",
-          "lastStart",
-          "lastSuccess",
-          "lastFailure",
-          "lastDurationMs",
-          "expectedIntervalMs",
-          "stale",
-          "staleReason"
-        ]
-      },
-      "SchedulerHealthResponseDto": {
-        "type": "object",
-        "properties": {
-          "status": {
-            "type": "string",
-            "enum": [
-              "ok",
-              "error"
-            ],
-            "example": "ok"
-          },
-          "summary": {
-            "type": "string",
-            "enum": [
-              "healthy",
-              "stale-jobs"
-            ],
-            "example": "healthy"
-          },
-          "checkedAt": {
-            "type": "string",
-            "description": "ISO timestamp of the check",
-            "example": "2026-01-01T00:00:00.000Z"
-          },
-          "staleJobs": {
-            "description": "Jobs currently considered stale",
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/SchedulerJobStatusDto"
-            }
-          },
-          "jobs": {
-            "description": "All registered jobs",
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/SchedulerJobStatusDto"
-            }
-          }
-        },
-        "required": [
-          "status",
-          "summary",
-          "checkedAt",
-          "staleJobs",
-          "jobs"
         ]
       },
       "RegistryConfigDto": {
@@ -42987,45 +41631,6 @@
           "processedAt",
           "deadLetterAt",
           "createdAt"
-        ]
-      },
-      "OutboxDeadLetterListResponseDto": {
-        "type": "object",
-        "properties": {
-          "data": {
-            "description": "Dead-lettered outbox events, newest first",
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/OutboxEvent"
-            }
-          },
-          "total": {
-            "type": "number",
-            "description": "Total number of dead-lettered events",
-            "example": 3
-          },
-          "page": {
-            "type": "number",
-            "description": "Page number (zero-indexed)",
-            "example": 0
-          },
-          "limit": {
-            "type": "number",
-            "description": "Page size",
-            "example": 20
-          },
-          "totalPages": {
-            "type": "number",
-            "description": "Total number of pages",
-            "example": 1
-          }
-        },
-        "required": [
-          "data",
-          "total",
-          "page",
-          "limit",
-          "totalPages"
         ]
       },
       "CreateExportJobDto": {
@@ -44168,43 +42773,6 @@
           "lastContributionAt"
         ]
       },
-      "CrowdfundContributionRecordDto": {
-        "type": "object",
-        "properties": {
-          "projectId": {
-            "type": "number",
-            "description": "Project ID",
-            "example": 1
-          },
-          "contributor": {
-            "type": "string",
-            "description": "Stellar public key of the contributor",
-            "example": "G...CONTRIBUTOR"
-          },
-          "amount": {
-            "type": "string",
-            "description": "Contributed amount",
-            "example": "1000"
-          },
-          "timestamp": {
-            "type": "string",
-            "description": "Timestamp of the contribution",
-            "example": "2026-05-27T20:58:35Z"
-          },
-          "transactionHash": {
-            "type": "string",
-            "description": "Hash of the transaction",
-            "example": "a1b2c3d4..."
-          }
-        },
-        "required": [
-          "projectId",
-          "contributor",
-          "amount",
-          "timestamp",
-          "transactionHash"
-        ]
-      },
       "SyncVaultDto": {
         "type": "object",
         "properties": {
@@ -44263,120 +42831,9 @@
           "status"
         ]
       },
-      "VaultEventResponseDto": {
+      "Object": {
         "type": "object",
-        "properties": {
-          "id": {
-            "type": "string"
-          },
-          "transactionHash": {
-            "type": "string"
-          },
-          "eventIndex": {
-            "type": "number"
-          },
-          "vaultAddress": {
-            "type": "string"
-          },
-          "projectId": {
-            "type": "string"
-          },
-          "eventType": {
-            "type": "string",
-            "enum": [
-              "contribution",
-              "milestone_approved",
-              "funds_withdrawn",
-              "vault_created",
-              "refund_initiated",
-              "refund_completed"
-            ]
-          },
-          "ledgerSequence": {
-            "type": "number"
-          },
-          "ledgerClosedAt": {
-            "format": "date-time",
-            "type": "string"
-          },
-          "normalizedData": {
-            "type": "object"
-          },
-          "status": {
-            "type": "string",
-            "enum": [
-              "pending",
-              "processed",
-              "failed",
-              "skipped"
-            ]
-          },
-          "processingAttempts": {
-            "type": "number"
-          },
-          "lastErrorMessage": {
-            "type": "string"
-          },
-          "processedAt": {
-            "format": "date-time",
-            "type": "string"
-          },
-          "createdAt": {
-            "format": "date-time",
-            "type": "string"
-          }
-        },
-        "required": [
-          "id",
-          "transactionHash",
-          "eventIndex",
-          "vaultAddress",
-          "eventType",
-          "ledgerSequence",
-          "ledgerClosedAt",
-          "status",
-          "processingAttempts",
-          "createdAt"
-        ]
-      },
-      "VaultEventListResponseDto": {
-        "type": "object",
-        "properties": {
-          "data": {
-            "description": "Events on this page",
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/VaultEventResponseDto"
-            }
-          },
-          "page": {
-            "type": "number",
-            "description": "Zero-based page index",
-            "example": 0
-          },
-          "limit": {
-            "type": "number",
-            "description": "Page size",
-            "example": 20
-          },
-          "total": {
-            "type": "number",
-            "description": "Total number of matching events",
-            "example": 57
-          },
-          "totalPages": {
-            "type": "number",
-            "description": "Total number of pages",
-            "example": 3
-          }
-        },
-        "required": [
-          "data",
-          "page",
-          "limit",
-          "total",
-          "totalPages"
-        ]
+        "properties": {}
       },
       "VaultSyncStatsDto": {
         "type": "object",
@@ -44419,37 +42876,6 @@
           "failedEvents",
           "processedEvents",
           "consecutiveFailures"
-        ]
-      },
-      "RegisterVaultDto": {
-        "type": "object",
-        "properties": {
-          "vaultAddress": {
-            "type": "string",
-            "description": "Stellar address of the crowdfund vault contract",
-            "example": "CDLZFC3SYJYDZT7K67VZ75HPJVIEUVNIXF47ZG2FB2RMQQVU2HHGCYSC"
-          },
-          "projectId": {
-            "type": "string",
-            "description": "Project the vault belongs to",
-            "example": "proj_123"
-          },
-          "contractAddress": {
-            "type": "string",
-            "description": "Crowdfund contract address, if different from the vault"
-          },
-          "tokenAddress": {
-            "type": "string",
-            "description": "Token contract address"
-          },
-          "ownerAddress": {
-            "type": "string",
-            "description": "Owner account address"
-          }
-        },
-        "required": [
-          "vaultAddress",
-          "projectId"
         ]
       },
       "CrowdfundVaultProject": {
@@ -44497,6 +42923,39 @@
           "updatedAt"
         ]
       },
+      "DeadLetterStatsResponseDto": {
+        "type": "object",
+        "properties": {
+          "total": {
+            "type": "number"
+          },
+          "pending": {
+            "type": "number"
+          },
+          "replayed": {
+            "type": "number"
+          },
+          "resolved": {
+            "type": "number"
+          },
+          "mostCommonError": {
+            "type": "string"
+          },
+          "oldestUnresolvedAt": {
+            "format": "date-time",
+            "type": "string"
+          },
+          "byVault": {
+            "type": "object"
+          }
+        },
+        "required": [
+          "total",
+          "pending",
+          "replayed",
+          "resolved"
+        ]
+      },
       "CrowdfundVaultDeadLetter": {
         "type": "object",
         "properties": {
@@ -44516,6 +42975,7 @@
             "type": "string"
           },
           "eventType": {
+            "type": "string",
             "enum": [
               "contribution",
               "milestone_approved",
@@ -44523,8 +42983,7 @@
               "vault_created",
               "refund_initiated",
               "refund_completed"
-            ],
-            "type": "string"
+            ]
           },
           "ledgerSequence": {
             "type": "number"
@@ -44548,12 +43007,12 @@
             }
           },
           "status": {
+            "type": "string",
             "enum": [
               "pending",
               "replayed",
               "resolved"
-            ],
-            "type": "string"
+            ]
           },
           "maintainerNotes": {
             "type": "string"
@@ -44596,78 +43055,6 @@
           "replayCount",
           "createdAt",
           "updatedAt"
-        ]
-      },
-      "DeadLetterListResponseDto": {
-        "type": "object",
-        "properties": {
-          "data": {
-            "description": "Dead-letter entries on this page",
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/CrowdfundVaultDeadLetter"
-            }
-          },
-          "page": {
-            "type": "number",
-            "description": "Zero-based page index",
-            "example": 0
-          },
-          "limit": {
-            "type": "number",
-            "description": "Page size",
-            "example": 20
-          },
-          "total": {
-            "type": "number",
-            "description": "Total number of matching entries",
-            "example": 4
-          },
-          "totalPages": {
-            "type": "number",
-            "description": "Total number of pages",
-            "example": 1
-          }
-        },
-        "required": [
-          "data",
-          "page",
-          "limit",
-          "total",
-          "totalPages"
-        ]
-      },
-      "DeadLetterStatsResponseDto": {
-        "type": "object",
-        "properties": {
-          "total": {
-            "type": "number"
-          },
-          "pending": {
-            "type": "number"
-          },
-          "replayed": {
-            "type": "number"
-          },
-          "resolved": {
-            "type": "number"
-          },
-          "mostCommonError": {
-            "type": "string"
-          },
-          "oldestUnresolvedAt": {
-            "format": "date-time",
-            "type": "string"
-          },
-          "byVault": {
-            "type": "object"
-          }
-        },
-        "required": [
-          "total",
-          "pending",
-          "replayed",
-          "resolved"
         ]
       },
       "ReplayDeadLetterDto": {
@@ -44713,25 +43100,6 @@
         },
         "required": [
           "reason"
-        ]
-      },
-      "CrowdfundSyncResolveDeadLetterResponseDto": {
-        "type": "object",
-        "properties": {
-          "message": {
-            "type": "string",
-            "description": "Result message",
-            "example": "Event marked as resolved"
-          },
-          "eventId": {
-            "type": "string",
-            "description": "ID of the resolved dead-letter entry",
-            "example": "3f1c2d7e-8a4b-4c1e-9f0a-1b2c3d4e5f60"
-          }
-        },
-        "required": [
-          "message",
-          "eventId"
         ]
       },
       "IngestSorobanEventDto": {
@@ -47035,79 +45403,6 @@
           "updatedAt",
           "progressPercentage",
           "estimatedTimeRemaining"
-        ]
-      },
-      "CancelRebuildJobResponseDto": {
-        "type": "object",
-        "properties": {
-          "success": {
-            "type": "boolean",
-            "description": "Whether the job was cancelled",
-            "example": true
-          },
-          "message": {
-            "type": "string",
-            "description": "Human-readable result message",
-            "example": "Job 3f1c2d7e-... cancelled"
-          }
-        },
-        "required": [
-          "success",
-          "message"
-        ]
-      },
-      "CleanupRebuildJobsResponseDto": {
-        "type": "object",
-        "properties": {
-          "deleted": {
-            "type": "number",
-            "description": "Number of job records deleted",
-            "example": 12
-          }
-        },
-        "required": [
-          "deleted"
-        ]
-      },
-      "RebuildDatasetInfoDto": {
-        "type": "object",
-        "properties": {
-          "name": {
-            "enum": [
-              "kpi_snapshots",
-              "project_views",
-              "contract_events",
-              "daily_metrics",
-              "all"
-            ],
-            "type": "string",
-            "description": "Dataset identifier (use as `dataset` when triggering a rebuild)",
-            "example": "kpi_snapshots"
-          },
-          "description": {
-            "type": "string",
-            "description": "What the dataset contains",
-            "example": "Daily KPI snapshots (TVL, Volume)"
-          }
-        },
-        "required": [
-          "name",
-          "description"
-        ]
-      },
-      "RebuildDatasetListResponseDto": {
-        "type": "object",
-        "properties": {
-          "datasets": {
-            "description": "Rebuildable datasets",
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/RebuildDatasetInfoDto"
-            }
-          }
-        },
-        "required": [
-          "datasets"
         ]
       },
       "ReconciliationJob": {

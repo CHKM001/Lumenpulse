@@ -11,7 +11,7 @@ import {
 import {
   ApiTags,
   ApiOperation,
-  ApiOkResponse,
+  ApiResponse,
   ApiBearerAuth,
   ApiBody,
 } from '@nestjs/swagger';
@@ -22,11 +22,11 @@ import { RolesGuard } from '../auth/roles.guard';
 import { Roles } from '../auth/decorators/auth.decorators';
 import { UserRole } from '../users/entities/user.entity';
 import { JWT_SECURITY_SCHEME } from '../openapi/openapi.constants';
-import {
-  ForceRefreshDto,
-  WarmCacheReportDto,
-  WarmCacheStatusDto,
-} from './dto/warm-cache.dto';
+
+class ForceRefreshDto {
+  /** Optional identifier for audit logs. */
+  requestedBy?: string;
+}
 
 @ApiTags('cache')
 @Controller('cache')
@@ -53,9 +53,9 @@ export class WarmCacheController {
       'Skips if Redis is unhealthy. Restricted to ADMIN role.',
   })
   @ApiBody({ type: ForceRefreshDto, required: false })
-  @ApiOkResponse({
+  @ApiResponse({
+    status: HttpStatus.OK,
     description: 'Warm-cache refresh report.',
-    type: WarmCacheReportDto,
   })
   async forceRefresh(@Body() dto?: ForceRefreshDto): Promise<WarmCacheReport> {
     this.logger.log(
@@ -80,11 +80,11 @@ export class WarmCacheController {
       'Returns the result of the most recently completed preload cycle, ' +
       'or null if no cycle has run yet.',
   })
-  @ApiOkResponse({
+  @ApiResponse({
+    status: HttpStatus.OK,
     description: 'Last warm-cache report (or null if never run).',
-    type: WarmCacheStatusDto,
   })
-  getStatus(): WarmCacheStatusDto {
+  getStatus(): { lastRunAt: string | null; report: WarmCacheReport | null } {
     return {
       lastRunAt: this.preloaderService.getLastRunAt(),
       report: this.preloaderService.getLastReport(),

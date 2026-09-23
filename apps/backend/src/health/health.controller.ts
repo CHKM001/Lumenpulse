@@ -16,11 +16,6 @@ import { ContractHealthService } from './contract-health.service';
 import { DeploymentSmokeService } from './deployment-smoke.service';
 import { HealthService } from './health.service';
 import { ShutdownService } from './shutdown.service';
-import {
-  ContractHealthReportDto,
-  DeploymentSmokeReportDto,
-  LatencyBudgetReportDto,
-} from './dto/health-report.dto';
 
 @ApiTags('health')
 @Controller()
@@ -84,7 +79,6 @@ export class HealthController {
   @ApiOkResponse({
     description:
       'Returns reachable contract status for all configured contract IDs.',
-    type: ContractHealthReportDto,
   })
   @ApiServiceUnavailableResponse({
     description:
@@ -113,7 +107,6 @@ export class HealthController {
   @ApiOkResponse({
     description:
       'All dependencies are within their latency budgets, or only degraded.',
-    type: LatencyBudgetReportDto,
   })
   @ApiServiceUnavailableResponse({
     description:
@@ -147,7 +140,6 @@ export class HealthController {
     description:
       'All checks passed, or only non-blocking warnings were raised (status ' +
       '"pass" or "warn").',
-    type: DeploymentSmokeReportDto,
   })
   @ApiServiceUnavailableResponse({
     description:

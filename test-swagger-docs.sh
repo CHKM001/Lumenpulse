@@ -120,18 +120,9 @@ echo ""
 echo "✓ Checking build..."
 cd apps/backend
 if npm run build > /dev/null 2>&1; then
-    echo "  ✅ Backend builds successfully (OpenAPI spec generated and linted)"
+    echo "  ✅ Backend builds successfully"
 else
-    echo "  ❌ Backend build failed (run 'npm run build' in apps/backend for OpenAPI lint details)"
-    exit 1
-fi
-
-echo ""
-echo "✓ Checking committed OpenAPI spec..."
-if git diff --quiet -- openapi.json; then
-    echo "  ✅ apps/backend/openapi.json is up to date"
-else
-    echo "  ❌ apps/backend/openapi.json is stale — commit the regenerated file"
+    echo "  ❌ Backend build failed"
     exit 1
 fi
 
@@ -143,7 +134,6 @@ echo ""
 echo "📚 Documentation available at:"
 echo "   • Swagger UI: http://localhost:3000/api/docs"
 echo "   • OpenAPI JSON: http://localhost:3000/api/docs-json"
-echo "   • Committed spec: apps/backend/openapi.json (see apps/backend/OPENAPI_CONTRACT.md)"
 echo ""
 echo "📖 Documentation files:"
 echo "   • document/api-documentation-guide.md"

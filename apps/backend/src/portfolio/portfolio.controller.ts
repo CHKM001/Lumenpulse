@@ -32,7 +32,6 @@ import {
   CurrencyCode,
 } from './dto/portfolio-currency.dto';
 import { PortfolioPerformanceResponseDto } from './dto/portfolio-performance.dto';
-import { PortfolioAllocationResponseDto } from './dto/portfolio-allocation.dto';
 import {
   getPortfolioReadThrottleOverride,
   getPortfolioWriteThrottleOverride,
@@ -272,12 +271,9 @@ export class PortfolioController {
   @ApiResponse({
     status: 200,
     description: 'Asset allocation retrieved successfully',
-    type: PortfolioAllocationResponseDto,
   })
   @ApiResponse({ status: 401, description: 'Unauthorized' })
-  async getAssetAllocation(
-    @Request() req: any,
-  ): Promise<PortfolioAllocationResponseDto> {
+  async getAssetAllocation(@Request() req: any) {
     // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
     const userId = req.user.sub as string;
     return this.portfolioService.getAssetAllocation(userId);

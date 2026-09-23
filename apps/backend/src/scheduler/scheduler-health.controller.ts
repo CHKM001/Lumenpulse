@@ -6,8 +6,18 @@ import {
   ApiTags,
 } from '@nestjs/swagger';
 import type { Response } from 'express';
-import { SchedulerHealthService } from './scheduler-health.service';
-import { SchedulerHealthResponseDto } from './dto/scheduler-health.dto';
+import {
+  SchedulerHealthService,
+  SchedulerJobStatus,
+} from './scheduler-health.service';
+
+interface SchedulerHealthPayload {
+  status: 'ok' | 'error';
+  summary: 'healthy' | 'stale-jobs';
+  checkedAt: string;
+  staleJobs: SchedulerJobStatus[];
+  jobs: SchedulerJobStatus[];
+}
 
 @ApiTags('health')
 @Controller('health/schedulers')
@@ -32,7 +42,6 @@ export class SchedulerHealthController {
   @ApiOkResponse({
     description:
       'All scheduled jobs succeeded within their expected intervals.',
-    type: SchedulerHealthResponseDto,
   })
   @ApiServiceUnavailableResponse({
     description:
@@ -40,7 +49,7 @@ export class SchedulerHealthController {
   })
   async getSchedulerHealth(
     @Res({ passthrough: true }) response: Response,
-  ): Promise<SchedulerHealthResponseDto> {
+  ): Promise<SchedulerHealthPayload> {
     const jobs = await this.schedulerHealth.getJobStatuses();
     const staleJobs = jobs.filter((job) => job.stale);
 

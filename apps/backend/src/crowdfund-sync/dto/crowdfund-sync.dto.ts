@@ -7,7 +7,6 @@ import {
   Max,
 } from 'class-validator';
 import { Type } from 'class-transformer';
-import { ApiPropertyOptional } from '@nestjs/swagger';
 import {
   CrowdfundVaultEventType,
   CrowdfundVaultEventStatus,
@@ -75,15 +74,10 @@ export class ListVaultEventsDto {
   @Type(() => Number)
   limit?: number = 20;
 
-  @ApiPropertyOptional({
-    enum: ['createdAt', 'ledgerSequence', 'processedAt'],
-    default: 'createdAt',
-  })
   @IsOptional()
   @IsString()
   sortBy?: 'createdAt' | 'ledgerSequence' | 'processedAt' = 'createdAt';
 
-  @ApiPropertyOptional({ enum: ['ASC', 'DESC'], default: 'DESC' })
   @IsOptional()
   @IsEnum(['ASC', 'DESC'])
   sortOrder?: 'ASC' | 'DESC' = 'DESC';
@@ -132,15 +126,10 @@ export class DeadLetterListDto {
   @Type(() => Number)
   limit?: number = 20;
 
-  @ApiPropertyOptional({
-    enum: ['createdAt', 'failureCount', 'updatedAt'],
-    default: 'createdAt',
-  })
   @IsOptional()
   @IsString()
   sortBy?: 'createdAt' | 'failureCount' | 'updatedAt' = 'createdAt';
 
-  @ApiPropertyOptional({ enum: ['ASC', 'DESC'], default: 'DESC' })
   @IsOptional()
   @IsEnum(['ASC', 'DESC'])
   sortOrder?: 'ASC' | 'DESC' = 'DESC';

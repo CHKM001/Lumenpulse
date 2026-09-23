@@ -1,10 +1,9 @@
 import { Controller, Post, Body, HttpCode, HttpStatus } from '@nestjs/common';
 import { TransactionStatusService } from './transaction-status.service';
 import { RegisterTransactionCallbackDto } from './dto/transaction-callback.dto';
-import { ApiTags, ApiOperation, ApiAcceptedResponse } from '@nestjs/swagger';
-import { TransactionCallbackRegisteredDto } from './dto/transaction-callback-response.dto';
+import { ApiTags, ApiOperation, ApiResponse } from '@nestjs/swagger';
 
-@ApiTags('transaction-status')
+@ApiTags('Transaction Status')
 @Controller('transactions/status')
 export class TransactionStatusController {
   constructor(private readonly statusService: TransactionStatusService) {}
@@ -14,13 +13,8 @@ export class TransactionStatusController {
   @ApiOperation({
     summary: 'Register a callback URL for transaction status updates',
   })
-  @ApiAcceptedResponse({
-    description: 'Callback registered successfully',
-    type: TransactionCallbackRegisteredDto,
-  })
-  async registerCallback(
-    @Body() dto: RegisterTransactionCallbackDto,
-  ): Promise<TransactionCallbackRegisteredDto> {
+  @ApiResponse({ status: 202, description: 'Callback registered successfully' })
+  async registerCallback(@Body() dto: RegisterTransactionCallbackDto) {
     await this.statusService.registerCallback(dto);
     return { message: 'Callback registered successfully' };
   }
