@@ -1,11 +1,5 @@
 import { Test, TestingModule } from '@nestjs/testing';
-import { INestApplication, Controller, Get, Post, Put, Patch, Delete } from '@nestjs/common';
-import { Reflector } from '@nestjs/core';
-import { JwtAuthGuard } from '../auth/jwt-auth.guard';
-import { RolesGuard } from '../auth/roles.guard';
-import { ContractAdminGuard } from '../common/guards/contract-admin.guard';
-import { IpAllowlistGuard } from '../metrics/ip-allowlist.guard';
-import { ROLES_KEY } from '../auth/decorators/auth.decorators';
+import { INestApplication } from '@nestjs/common';
 import { UserRole } from '../users/entities/user.entity';
 import * as fs from 'fs';
 import * as path from 'path';
@@ -26,7 +20,6 @@ import * as path from 'path';
 interface RouteInfo {
   path: string;
   method: string;
-  controllerName: string;
   hasJwtGuard: boolean;
   hasRolesGuard: boolean;
   hasContractAdminGuard: boolean;
@@ -34,7 +27,7 @@ interface RouteInfo {
   hasPublicDecorator: boolean;
   requiredRoles: UserRole[];
   isPublic: boolean;
-  authorizationDecision: 'public' | 'authenticated' | 'role-based' | 'none';
+  authorizationDecision: 'public' | 'authenticated' | 'role-based' | 'ip-allowlist' | 'none';
 }
 
 interface ControllerInfo {
@@ -220,7 +213,6 @@ const EXPECTED_AUTHORIZATION_MATRIX: Record<string, {
 
 describe('Authorization Matrix Test', () => {
   let app: INestApplication;
-  let reflector: Reflector;
 
   beforeAll(async () => {
     const moduleFixture: TestingModule = await Test.createTestingModule({
@@ -228,7 +220,6 @@ describe('Authorization Matrix Test', () => {
     }).compile();
 
     app = moduleFixture.createNestApplication();
-    reflector = moduleFixture.get<Reflector>(Reflector);
   });
 
   afterAll(async () => {
@@ -252,9 +243,9 @@ describe('Authorization Matrix Test', () => {
 
       if (routesWithoutAuth.length > 0) {
         const errorMessages = routesWithoutAuth.map(
-          (route) =>
-            `  - ${route.controllerName}: ${route.method} ${route.path}`
-        );
+        (route) =>
+          `  - ${route.method} ${route.path}`
+      );  
         fail(
           `Found ${routesWithoutAuth.length} route(s) without explicit authorization:\n${errorMessages.join('\n')}\n\n` +
             'Every route must have an explicit authorization decision. ' +
@@ -573,7 +564,6 @@ function analyzeControllerFile(filePath: string): ControllerInfo | null {
         const routeInfo: RouteInfo = {
           path,
           method,
-          controllerName: fileName,
           hasJwtGuard: routeContext.includes('JwtAuthGuard'),
           hasRolesGuard: routeContext.includes('RolesGuard'),
           hasContractAdminGuard: routeContext.includes('ContractAdminGuard'),
