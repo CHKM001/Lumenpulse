@@ -89,9 +89,7 @@ export class PriceService implements OnModuleInit, OnModuleDestroy {
    * @param assetCodes Deduplicated list of asset code strings (e.g. ["XLM", "USDC"]).
    * @returns Map from assetCode → USD price.  Missing codes map to 0.
    */
-  async getPricesForAssets(
-    assetCodes: string[],
-  ): Promise<Map<string, number>> {
+  getPricesForAssets(assetCodes: string[]): Promise<Map<string, number>> {
     // Deduplicate so we only resolve each code once.
     const unique = [...new Set(assetCodes)];
 
@@ -108,6 +106,6 @@ export class PriceService implements OnModuleInit, OnModuleDestroy {
     for (const code of unique) {
       result.set(code, mockPrices[code] ?? 0);
     }
-    return result;
+    return Promise.resolve(result);
   }
 }
