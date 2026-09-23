@@ -6,10 +6,10 @@ import * as path from 'path';
 
 /**
  * Authorization Matrix Test
- * 
+ *
  * This test validates that every controller route has an explicit authorization decision.
  * It ensures that new routes cannot be added without proper authorization guards.
- * 
+ *
  * The test:
  * 1. Discovers all controllers in the application
  * 2. Extracts all routes and their decorators
@@ -27,7 +27,12 @@ interface RouteInfo {
   hasPublicDecorator: boolean;
   requiredRoles: UserRole[];
   isPublic: boolean;
-  authorizationDecision: 'public' | 'authenticated' | 'role-based' | 'ip-allowlist' | 'none';
+  authorizationDecision:
+    | 'public'
+    | 'authenticated'
+    | 'role-based'
+    | 'ip-allowlist'
+    | 'none';
 }
 
 interface ControllerInfo {
@@ -37,81 +42,240 @@ interface ControllerInfo {
 
 // Expected authorization matrix - this should be the source of truth
 // Routes not in this list will fail the test
-const EXPECTED_AUTHORIZATION_MATRIX: Record<string, {
-  path: string;
-  method: string;
-  expectedAuth: 'public' | 'authenticated' | 'role-based' | 'ip-allowlist';
-  expectedRoles?: UserRole[];
-}[]> = {
+const EXPECTED_AUTHORIZATION_MATRIX: Record<
+  string,
+  {
+    path: string;
+    method: string;
+    expectedAuth: 'public' | 'authenticated' | 'role-based' | 'ip-allowlist';
+    expectedRoles?: UserRole[];
+  }[]
+> = {
   'admin-audit.controller': [
-    { path: '/admin/audit/blockchain', method: 'GET', expectedAuth: 'role-based', expectedRoles: [UserRole.ADMIN] },
+    {
+      path: '/admin/audit/blockchain',
+      method: 'GET',
+      expectedAuth: 'role-based',
+      expectedRoles: [UserRole.ADMIN],
+    },
   ],
   'audit.controller': [
-    { path: '/admin/audit-logs', method: 'GET', expectedAuth: 'role-based', expectedRoles: [UserRole.ADMIN] },
+    {
+      path: '/admin/audit-logs',
+      method: 'GET',
+      expectedAuth: 'role-based',
+      expectedRoles: [UserRole.ADMIN],
+    },
   ],
   'cache.controller': [
-    { path: '/cache/warm', method: 'POST', expectedAuth: 'role-based', expectedRoles: [UserRole.ADMIN] },
-    { path: '/cache/warm/status', method: 'GET', expectedAuth: 'role-based', expectedRoles: [UserRole.ADMIN] },
+    {
+      path: '/cache/warm',
+      method: 'POST',
+      expectedAuth: 'role-based',
+      expectedRoles: [UserRole.ADMIN],
+    },
+    {
+      path: '/cache/warm/status',
+      method: 'GET',
+      expectedAuth: 'role-based',
+      expectedRoles: [UserRole.ADMIN],
+    },
   ],
   'config.controller': [
     { path: '/config/stellar', method: 'GET', expectedAuth: 'public' },
   ],
   'contracts.controller': [
     { path: '/contracts/capabilities', method: 'GET', expectedAuth: 'public' },
-    { path: '/contracts/capabilities/:contractId', method: 'GET', expectedAuth: 'public' },
+    {
+      path: '/contracts/capabilities/:contractId',
+      method: 'GET',
+      expectedAuth: 'public',
+    },
   ],
   'contributor-registry.controller': [
-    { path: '/contributor-registry/register', method: 'POST', expectedAuth: 'role-based', expectedRoles: [UserRole.ADMIN] },
-    { path: '/contributor-registry/register-with-sig', method: 'POST', expectedAuth: 'role-based', expectedRoles: [UserRole.ADMIN] },
-    { path: '/contributor-registry/wallet/:address', method: 'GET', expectedAuth: 'public' },
-    { path: '/contributor-registry/github/:handle', method: 'GET', expectedAuth: 'public' },
-    { path: '/contributor-registry/reputation/:address', method: 'GET', expectedAuth: 'public' },
-    { path: '/contributor-registry/nonce/:address', method: 'GET', expectedAuth: 'public' },
+    {
+      path: '/contributor-registry/register',
+      method: 'POST',
+      expectedAuth: 'role-based',
+      expectedRoles: [UserRole.ADMIN],
+    },
+    {
+      path: '/contributor-registry/register-with-sig',
+      method: 'POST',
+      expectedAuth: 'role-based',
+      expectedRoles: [UserRole.ADMIN],
+    },
+    {
+      path: '/contributor-registry/wallet/:address',
+      method: 'GET',
+      expectedAuth: 'public',
+    },
+    {
+      path: '/contributor-registry/github/:handle',
+      method: 'GET',
+      expectedAuth: 'public',
+    },
+    {
+      path: '/contributor-registry/reputation/:address',
+      method: 'GET',
+      expectedAuth: 'public',
+    },
+    {
+      path: '/contributor-registry/nonce/:address',
+      method: 'GET',
+      expectedAuth: 'public',
+    },
   ],
   'crowdfund.controller': [
     { path: '/crowdfund/projects', method: 'GET', expectedAuth: 'public' },
     { path: '/crowdfund/projects/:id', method: 'GET', expectedAuth: 'public' },
-    { path: '/crowdfund/projects', method: 'POST', expectedAuth: 'authenticated' },
+    {
+      path: '/crowdfund/projects',
+      method: 'POST',
+      expectedAuth: 'authenticated',
+    },
     { path: '/crowdfund/contribute', method: 'POST', expectedAuth: 'public' },
-    { path: '/crowdfund/admin/bootstrap-demo-data', method: 'POST', expectedAuth: 'role-based', expectedRoles: [UserRole.ADMIN] },
-    { path: '/crowdfund/projects/:id/contributors', method: 'GET', expectedAuth: 'public' },
-    { path: '/crowdfund/projects/:id/balance', method: 'GET', expectedAuth: 'public' },
-    { path: '/crowdfund/projects/:id/my-contributions', method: 'GET', expectedAuth: 'authenticated' },
+    {
+      path: '/crowdfund/admin/bootstrap-demo-data',
+      method: 'POST',
+      expectedAuth: 'role-based',
+      expectedRoles: [UserRole.ADMIN],
+    },
+    {
+      path: '/crowdfund/projects/:id/contributors',
+      method: 'GET',
+      expectedAuth: 'public',
+    },
+    {
+      path: '/crowdfund/projects/:id/balance',
+      method: 'GET',
+      expectedAuth: 'public',
+    },
+    {
+      path: '/crowdfund/projects/:id/my-contributions',
+      method: 'GET',
+      expectedAuth: 'authenticated',
+    },
   ],
   'demo-bootstrap.controller': [
     { path: '/demo-bootstrap/status', method: 'GET', expectedAuth: 'public' },
-    { path: '/demo-bootstrap/seed', method: 'POST', expectedAuth: 'role-based', expectedRoles: [UserRole.ADMIN] },
-    { path: '/demo-bootstrap/reset', method: 'POST', expectedAuth: 'role-based', expectedRoles: [UserRole.ADMIN] },
-    { path: '/demo-bootstrap/runs', method: 'GET', expectedAuth: 'role-based', expectedRoles: [UserRole.ADMIN] },
-    { path: '/demo-bootstrap/runs/:runId/teardown', method: 'POST', expectedAuth: 'role-based', expectedRoles: [UserRole.ADMIN] },
+    {
+      path: '/demo-bootstrap/seed',
+      method: 'POST',
+      expectedAuth: 'role-based',
+      expectedRoles: [UserRole.ADMIN],
+    },
+    {
+      path: '/demo-bootstrap/reset',
+      method: 'POST',
+      expectedAuth: 'role-based',
+      expectedRoles: [UserRole.ADMIN],
+    },
+    {
+      path: '/demo-bootstrap/runs',
+      method: 'GET',
+      expectedAuth: 'role-based',
+      expectedRoles: [UserRole.ADMIN],
+    },
+    {
+      path: '/demo-bootstrap/runs/:runId/teardown',
+      method: 'POST',
+      expectedAuth: 'role-based',
+      expectedRoles: [UserRole.ADMIN],
+    },
   ],
   'export.controller': [
     { path: '/exports', method: 'POST', expectedAuth: 'authenticated' },
-    { path: '/exports/admin/analytics', method: 'POST', expectedAuth: 'role-based', expectedRoles: [UserRole.ADMIN] },
+    {
+      path: '/exports/admin/analytics',
+      method: 'POST',
+      expectedAuth: 'role-based',
+      expectedRoles: [UserRole.ADMIN],
+    },
     { path: '/exports', method: 'GET', expectedAuth: 'authenticated' },
     { path: '/exports/:id', method: 'GET', expectedAuth: 'authenticated' },
-    { path: '/exports/:id/download', method: 'GET', expectedAuth: 'authenticated' },
+    {
+      path: '/exports/:id/download',
+      method: 'GET',
+      expectedAuth: 'authenticated',
+    },
   ],
   'feature-flags.controller': [
     { path: '/feature-flags', method: 'GET', expectedAuth: 'public' },
-    { path: '/feature-flags/check/:key', method: 'GET', expectedAuth: 'public' },
-    { path: '/feature-flags/:key/history', method: 'GET', expectedAuth: 'public' },
+    {
+      path: '/feature-flags/check/:key',
+      method: 'GET',
+      expectedAuth: 'public',
+    },
+    {
+      path: '/feature-flags/:key/history',
+      method: 'GET',
+      expectedAuth: 'public',
+    },
     { path: '/feature-flags/:key', method: 'GET', expectedAuth: 'public' },
-    { path: '/feature-flags', method: 'POST', expectedAuth: 'role-based', expectedRoles: [UserRole.ADMIN] },
-    { path: '/feature-flags/:key', method: 'DELETE', expectedAuth: 'role-based', expectedRoles: [UserRole.ADMIN] },
+    {
+      path: '/feature-flags',
+      method: 'POST',
+      expectedAuth: 'role-based',
+      expectedRoles: [UserRole.ADMIN],
+    },
+    {
+      path: '/feature-flags/:key',
+      method: 'DELETE',
+      expectedAuth: 'role-based',
+      expectedRoles: [UserRole.ADMIN],
+    },
   ],
   'grants.controller': [
     { path: '/grants/rounds', method: 'GET', expectedAuth: 'public' },
     { path: '/grants/rounds/:id', method: 'GET', expectedAuth: 'public' },
-    { path: '/grants/rounds/:id/summary', method: 'GET', expectedAuth: 'public' },
-    { path: '/grants/rounds/:id/export', method: 'GET', expectedAuth: 'public' },
-    { path: '/grants/rounds', method: 'POST', expectedAuth: 'role-based', expectedRoles: [UserRole.ADMIN] },
-    { path: '/grants/rounds/:id/finalize', method: 'POST', expectedAuth: 'role-based', expectedRoles: [UserRole.ADMIN] },
-    { path: '/grants/rounds/fund', method: 'POST', expectedAuth: 'role-based', expectedRoles: [UserRole.ADMIN] },
-    { path: '/grants/rounds/projects/approve', method: 'POST', expectedAuth: 'role-based', expectedRoles: [UserRole.ADMIN, UserRole.REVIEWER] },
-    { path: '/grants/rounds/:roundId/projects/:projectId', method: 'DELETE', expectedAuth: 'role-based', expectedRoles: [UserRole.ADMIN] },
+    {
+      path: '/grants/rounds/:id/summary',
+      method: 'GET',
+      expectedAuth: 'public',
+    },
+    {
+      path: '/grants/rounds/:id/export',
+      method: 'GET',
+      expectedAuth: 'public',
+    },
+    {
+      path: '/grants/rounds',
+      method: 'POST',
+      expectedAuth: 'role-based',
+      expectedRoles: [UserRole.ADMIN],
+    },
+    {
+      path: '/grants/rounds/:id/finalize',
+      method: 'POST',
+      expectedAuth: 'role-based',
+      expectedRoles: [UserRole.ADMIN],
+    },
+    {
+      path: '/grants/rounds/fund',
+      method: 'POST',
+      expectedAuth: 'role-based',
+      expectedRoles: [UserRole.ADMIN],
+    },
+    {
+      path: '/grants/rounds/projects/approve',
+      method: 'POST',
+      expectedAuth: 'role-based',
+      expectedRoles: [UserRole.ADMIN, UserRole.REVIEWER],
+    },
+    {
+      path: '/grants/rounds/:roundId/projects/:projectId',
+      method: 'DELETE',
+      expectedAuth: 'role-based',
+      expectedRoles: [UserRole.ADMIN],
+    },
     { path: '/grants/contributions', method: 'POST', expectedAuth: 'public' },
-    { path: '/grants/rounds/distribute', method: 'POST', expectedAuth: 'role-based', expectedRoles: [UserRole.ADMIN] },
+    {
+      path: '/grants/rounds/distribute',
+      method: 'POST',
+      expectedAuth: 'role-based',
+      expectedRoles: [UserRole.ADMIN],
+    },
     { path: '/grants/leaderboard', method: 'GET', expectedAuth: 'public' },
   ],
   'health.controller': [
@@ -128,13 +292,46 @@ const EXPECTED_AUTHORIZATION_MATRIX: Record<string, {
     { path: '/metrics/health', method: 'GET', expectedAuth: 'public' },
   ],
   'moderation.controller': [
-    { path: '/moderation/report', method: 'POST', expectedAuth: 'authenticated' },
-    { path: '/moderation/my-reports', method: 'GET', expectedAuth: 'authenticated' },
-    { path: '/moderation/queue', method: 'GET', expectedAuth: 'role-based', expectedRoles: [UserRole.ADMIN] },
-    { path: '/moderation/queue/stats', method: 'GET', expectedAuth: 'role-based', expectedRoles: [UserRole.ADMIN] },
-    { path: '/moderation/queue/:id', method: 'GET', expectedAuth: 'role-based', expectedRoles: [UserRole.ADMIN] },
-    { path: '/moderation/queue/:id', method: 'PATCH', expectedAuth: 'role-based', expectedRoles: [UserRole.ADMIN] },
-    { path: '/moderation/queue/:id/assign', method: 'PATCH', expectedAuth: 'role-based', expectedRoles: [UserRole.ADMIN] },
+    {
+      path: '/moderation/report',
+      method: 'POST',
+      expectedAuth: 'authenticated',
+    },
+    {
+      path: '/moderation/my-reports',
+      method: 'GET',
+      expectedAuth: 'authenticated',
+    },
+    {
+      path: '/moderation/queue',
+      method: 'GET',
+      expectedAuth: 'role-based',
+      expectedRoles: [UserRole.ADMIN],
+    },
+    {
+      path: '/moderation/queue/stats',
+      method: 'GET',
+      expectedAuth: 'role-based',
+      expectedRoles: [UserRole.ADMIN],
+    },
+    {
+      path: '/moderation/queue/:id',
+      method: 'GET',
+      expectedAuth: 'role-based',
+      expectedRoles: [UserRole.ADMIN],
+    },
+    {
+      path: '/moderation/queue/:id',
+      method: 'PATCH',
+      expectedAuth: 'role-based',
+      expectedRoles: [UserRole.ADMIN],
+    },
+    {
+      path: '/moderation/queue/:id/assign',
+      method: 'PATCH',
+      expectedAuth: 'role-based',
+      expectedRoles: [UserRole.ADMIN],
+    },
   ],
   'news.controller': [
     { path: '/news', method: 'GET', expectedAuth: 'public' },
@@ -145,32 +342,98 @@ const EXPECTED_AUTHORIZATION_MATRIX: Record<string, {
     { path: '/news/coin/:symbol', method: 'GET', expectedAuth: 'public' },
   ],
   'notification-preference.controller': [
-    { path: '/notification-preferences', method: 'POST', expectedAuth: 'authenticated' },
-    { path: '/notification-preferences', method: 'GET', expectedAuth: 'authenticated' },
-    { path: '/notification-preferences/:userId', method: 'GET', expectedAuth: 'authenticated' },
-    { path: '/notification-preferences/:id', method: 'PUT', expectedAuth: 'authenticated' },
-    { path: '/notification-preferences/:id', method: 'DELETE', expectedAuth: 'authenticated' },
-    { path: '/notification-preferences/:userId/channels/:eventCategory', method: 'GET', expectedAuth: 'authenticated' },
+    {
+      path: '/notification-preferences',
+      method: 'POST',
+      expectedAuth: 'authenticated',
+    },
+    {
+      path: '/notification-preferences',
+      method: 'GET',
+      expectedAuth: 'authenticated',
+    },
+    {
+      path: '/notification-preferences/:userId',
+      method: 'GET',
+      expectedAuth: 'authenticated',
+    },
+    {
+      path: '/notification-preferences/:id',
+      method: 'PUT',
+      expectedAuth: 'authenticated',
+    },
+    {
+      path: '/notification-preferences/:id',
+      method: 'DELETE',
+      expectedAuth: 'authenticated',
+    },
+    {
+      path: '/notification-preferences/:userId/channels/:eventCategory',
+      method: 'GET',
+      expectedAuth: 'authenticated',
+    },
   ],
   'price-alert.controller': [
     { path: '/price-alerts', method: 'GET', expectedAuth: 'authenticated' },
     { path: '/price-alerts/:id', method: 'GET', expectedAuth: 'authenticated' },
     { path: '/price-alerts', method: 'POST', expectedAuth: 'authenticated' },
-    { path: '/price-alerts/:id', method: 'PATCH', expectedAuth: 'authenticated' },
-    { path: '/price-alerts/:id', method: 'DELETE', expectedAuth: 'authenticated' },
+    {
+      path: '/price-alerts/:id',
+      method: 'PATCH',
+      expectedAuth: 'authenticated',
+    },
+    {
+      path: '/price-alerts/:id',
+      method: 'DELETE',
+      expectedAuth: 'authenticated',
+    },
   ],
   'projects.controller': [
     { path: '/projects', method: 'GET', expectedAuth: 'public' },
     { path: '/projects/:projectId', method: 'GET', expectedAuth: 'public' },
-    { path: '/projects/:projectId/health', method: 'GET', expectedAuth: 'public' },
+    {
+      path: '/projects/:projectId/health',
+      method: 'GET',
+      expectedAuth: 'public',
+    },
   ],
   'read-model-rebuild.controller': [
-    { path: '/api/read-model/rebuild', method: 'POST', expectedAuth: 'role-based', expectedRoles: [UserRole.ADMIN] },
-    { path: '/api/read-model/jobs/:jobId', method: 'GET', expectedAuth: 'role-based', expectedRoles: [UserRole.ADMIN] },
-    { path: '/api/read-model/jobs', method: 'GET', expectedAuth: 'role-based', expectedRoles: [UserRole.ADMIN] },
-    { path: '/api/read-model/jobs/:jobId/cancel', method: 'DELETE', expectedAuth: 'role-based', expectedRoles: [UserRole.ADMIN] },
-    { path: '/api/read-model/jobs/cleanup', method: 'DELETE', expectedAuth: 'role-based', expectedRoles: [UserRole.ADMIN] },
-    { path: '/api/read-model/datasets', method: 'GET', expectedAuth: 'role-based', expectedRoles: [UserRole.ADMIN] },
+    {
+      path: '/api/read-model/rebuild',
+      method: 'POST',
+      expectedAuth: 'role-based',
+      expectedRoles: [UserRole.ADMIN],
+    },
+    {
+      path: '/api/read-model/jobs/:jobId',
+      method: 'GET',
+      expectedAuth: 'role-based',
+      expectedRoles: [UserRole.ADMIN],
+    },
+    {
+      path: '/api/read-model/jobs',
+      method: 'GET',
+      expectedAuth: 'role-based',
+      expectedRoles: [UserRole.ADMIN],
+    },
+    {
+      path: '/api/read-model/jobs/:jobId/cancel',
+      method: 'DELETE',
+      expectedAuth: 'role-based',
+      expectedRoles: [UserRole.ADMIN],
+    },
+    {
+      path: '/api/read-model/jobs/cleanup',
+      method: 'DELETE',
+      expectedAuth: 'role-based',
+      expectedRoles: [UserRole.ADMIN],
+    },
+    {
+      path: '/api/read-model/datasets',
+      method: 'GET',
+      expectedAuth: 'role-based',
+      expectedRoles: [UserRole.ADMIN],
+    },
   ],
   'search.controller': [
     { path: '/search/projects', method: 'GET', expectedAuth: 'public' },
@@ -182,32 +445,113 @@ const EXPECTED_AUTHORIZATION_MATRIX: Record<string, {
     { path: '/health/schedulers', method: 'GET', expectedAuth: 'public' },
   ],
   'matching-pool-admin.controller': [
-    { path: '/admin/matching-pool/rounds', method: 'POST', expectedAuth: 'role-based', expectedRoles: [UserRole.ADMIN] },
-    { path: '/admin/matching-pool/rounds/:roundId/approve-project', method: 'POST', expectedAuth: 'role-based', expectedRoles: [UserRole.ADMIN] },
+    {
+      path: '/admin/matching-pool/rounds',
+      method: 'POST',
+      expectedAuth: 'role-based',
+      expectedRoles: [UserRole.ADMIN],
+    },
+    {
+      path: '/admin/matching-pool/rounds/:roundId/approve-project',
+      method: 'POST',
+      expectedAuth: 'role-based',
+      expectedRoles: [UserRole.ADMIN],
+    },
   ],
   'telegram-bot.controller': [
-    { path: '/telegram-bot/broadcast', method: 'POST', expectedAuth: 'role-based', expectedRoles: [UserRole.ADMIN] },
+    {
+      path: '/telegram-bot/broadcast',
+      method: 'POST',
+      expectedAuth: 'role-based',
+      expectedRoles: [UserRole.ADMIN],
+    },
   ],
   'treasury.controller': [
-    { path: '/treasury/streams', method: 'POST', expectedAuth: 'role-based', expectedRoles: [UserRole.ADMIN] },
-    { path: '/treasury/streams/:beneficiary', method: 'GET', expectedAuth: 'public' },
-    { path: '/treasury/streams/:beneficiary/history', method: 'GET', expectedAuth: 'role-based', expectedRoles: [UserRole.ADMIN] },
-    { path: '/treasury/beneficiary-history', method: 'GET', expectedAuth: 'role-based', expectedRoles: [UserRole.ADMIN] },
-    { path: '/treasury/streams/rotate', method: 'POST', expectedAuth: 'role-based', expectedRoles: [UserRole.ADMIN] },
-    { path: '/treasury/streams/preview', method: 'GET', expectedAuth: 'public' },
+    {
+      path: '/treasury/streams',
+      method: 'POST',
+      expectedAuth: 'role-based',
+      expectedRoles: [UserRole.ADMIN],
+    },
+    {
+      path: '/treasury/streams/:beneficiary',
+      method: 'GET',
+      expectedAuth: 'public',
+    },
+    {
+      path: '/treasury/streams/:beneficiary/history',
+      method: 'GET',
+      expectedAuth: 'role-based',
+      expectedRoles: [UserRole.ADMIN],
+    },
+    {
+      path: '/treasury/beneficiary-history',
+      method: 'GET',
+      expectedAuth: 'role-based',
+      expectedRoles: [UserRole.ADMIN],
+    },
+    {
+      path: '/treasury/streams/rotate',
+      method: 'POST',
+      expectedAuth: 'role-based',
+      expectedRoles: [UserRole.ADMIN],
+    },
+    {
+      path: '/treasury/streams/preview',
+      method: 'GET',
+      expectedAuth: 'public',
+    },
   ],
   'users.controller': [
-    { path: '/users', method: 'GET', expectedAuth: 'role-based', expectedRoles: [UserRole.ADMIN] },
-    { path: '/users/:id', method: 'GET', expectedAuth: 'role-based', expectedRoles: [UserRole.ADMIN] },
+    {
+      path: '/users',
+      method: 'GET',
+      expectedAuth: 'role-based',
+      expectedRoles: [UserRole.ADMIN],
+    },
+    {
+      path: '/users/:id',
+      method: 'GET',
+      expectedAuth: 'role-based',
+      expectedRoles: [UserRole.ADMIN],
+    },
     { path: '/users/me', method: 'GET', expectedAuth: 'authenticated' },
     { path: '/users/me', method: 'PATCH', expectedAuth: 'authenticated' },
-    { path: '/users/me/accounts', method: 'POST', expectedAuth: 'authenticated' },
-    { path: '/users/me/accounts', method: 'GET', expectedAuth: 'authenticated' },
-    { path: '/users/me/accounts/:id', method: 'GET', expectedAuth: 'authenticated' },
-    { path: '/users/me/accounts/:id', method: 'DELETE', expectedAuth: 'authenticated' },
-    { path: '/users/me/accounts/:id/label', method: 'PATCH', expectedAuth: 'authenticated' },
-    { path: '/users/me/avatar', method: 'PATCH', expectedAuth: 'authenticated' },
-    { path: '/users/me/accounts/:id/primary', method: 'POST', expectedAuth: 'authenticated' },
+    {
+      path: '/users/me/accounts',
+      method: 'POST',
+      expectedAuth: 'authenticated',
+    },
+    {
+      path: '/users/me/accounts',
+      method: 'GET',
+      expectedAuth: 'authenticated',
+    },
+    {
+      path: '/users/me/accounts/:id',
+      method: 'GET',
+      expectedAuth: 'authenticated',
+    },
+    {
+      path: '/users/me/accounts/:id',
+      method: 'DELETE',
+      expectedAuth: 'authenticated',
+    },
+    {
+      path: '/users/me/accounts/:id/label',
+      method: 'PATCH',
+      expectedAuth: 'authenticated',
+    },
+    {
+      path: '/users/me/avatar',
+      method: 'PATCH',
+      expectedAuth: 'authenticated',
+    },
+    {
+      path: '/users/me/accounts/:id/primary',
+      method: 'POST',
+      expectedAuth: 'authenticated',
+    },
   ],
 };
 
@@ -232,24 +576,23 @@ describe('Authorization Matrix Test', () => {
     it('should validate all routes have explicit authorization decisions', () => {
       const controllers = discoverControllers();
       const allRoutes: RouteInfo[] = [];
-      
+
       for (const controller of controllers) {
         allRoutes.push(...controller.routes);
       }
 
       const routesWithoutAuth = allRoutes.filter(
-        (route) => route.authorizationDecision === 'none'
+        (route) => route.authorizationDecision === 'none',
       );
 
       if (routesWithoutAuth.length > 0) {
         const errorMessages = routesWithoutAuth.map(
-        (route) =>
-          `  - ${route.method} ${route.path}`
-      );  
+          (route) => `  - ${route.method} ${route.path}`,
+        );
         fail(
           `Found ${routesWithoutAuth.length} route(s) without explicit authorization:\n${errorMessages.join('\n')}\n\n` +
             'Every route must have an explicit authorization decision. ' +
-            'Add guards (@UseGuards) or mark as public (@Public()).'
+            'Add guards (@UseGuards) or mark as public (@Public()).',
         );
       }
 
@@ -261,17 +604,18 @@ describe('Authorization Matrix Test', () => {
       const mismatches: string[] = [];
 
       for (const controller of controllers) {
-        const expectedRoutes = EXPECTED_AUTHORIZATION_MATRIX[controller.name] || [];
-        
+        const expectedRoutes =
+          EXPECTED_AUTHORIZATION_MATRIX[controller.name] || [];
+
         for (const route of controller.routes) {
           const expected = expectedRoutes.find(
-            (e) => e.path === route.path && e.method === route.method
+            (e) => e.path === route.path && e.method === route.method,
           );
 
           if (!expected) {
             mismatches.push(
               `${controller.name}: ${route.method} ${route.path} - Route not in expected matrix. ` +
-              'Add this route to EXPECTED_AUTHORIZATION_MATRIX in the test file.'
+                'Add this route to EXPECTED_AUTHORIZATION_MATRIX in the test file.',
             );
             continue;
           }
@@ -280,19 +624,22 @@ describe('Authorization Matrix Test', () => {
           if (route.authorizationDecision !== expected.expectedAuth) {
             mismatches.push(
               `${controller.name}: ${route.method} ${route.path} - ` +
-              `Expected auth type '${expected.expectedAuth}', got '${route.authorizationDecision}'`
+                `Expected auth type '${expected.expectedAuth}', got '${route.authorizationDecision}'`,
             );
           }
 
           // Validate roles match for role-based auth
-          if (expected.expectedAuth === 'role-based' && expected.expectedRoles) {
+          if (
+            expected.expectedAuth === 'role-based' &&
+            expected.expectedRoles
+          ) {
             const routeRoles = route.requiredRoles.sort();
             const expectedRoles = expected.expectedRoles.sort();
-            
+
             if (JSON.stringify(routeRoles) !== JSON.stringify(expectedRoles)) {
               mismatches.push(
                 `${controller.name}: ${route.method} ${route.path} - ` +
-                `Expected roles [${expectedRoles.join(', ')}], got [${routeRoles.join(', ')}]`
+                  `Expected roles [${expectedRoles.join(', ')}], got [${routeRoles.join(', ')}]`,
               );
             }
           }
@@ -301,11 +648,11 @@ describe('Authorization Matrix Test', () => {
         // Check for missing routes (routes in expected but not found)
         for (const expected of expectedRoutes) {
           const found = controller.routes.find(
-            (r) => r.path === expected.path && r.method === expected.method
+            (r) => r.path === expected.path && r.method === expected.method,
           );
           if (!found) {
             mismatches.push(
-              `${controller.name}: Expected route ${expected.method} ${expected.path} not found in controller`
+              `${controller.name}: Expected route ${expected.method} ${expected.path} not found in controller`,
             );
           }
         }
@@ -314,7 +661,7 @@ describe('Authorization Matrix Test', () => {
       if (mismatches.length > 0) {
         fail(
           `Authorization matrix validation failed:\n${mismatches.join('\n')}\n\n` +
-            'Update EXPECTED_AUTHORIZATION_MATRIX in the test file to match current implementation.'
+            'Update EXPECTED_AUTHORIZATION_MATRIX in the test file to match current implementation.',
         );
       }
     });
@@ -332,7 +679,7 @@ describe('Authorization Matrix Test', () => {
           ) {
             securityConcerns.push(
               `${controller.name}: ${route.method} ${route.path} - ` +
-              'Mutation endpoint is public (no authentication required)'
+                'Mutation endpoint is public (no authentication required)',
             );
           }
 
@@ -344,7 +691,7 @@ describe('Authorization Matrix Test', () => {
           ) {
             securityConcerns.push(
               `${controller.name}: ${route.method} ${route.path} - ` +
-              'Admin endpoint lacks authentication/authorization guards'
+                'Admin endpoint lacks authentication/authorization guards',
             );
           }
         }
@@ -358,13 +705,15 @@ describe('Authorization Matrix Test', () => {
       ];
 
       const newConcerns = securityConcerns.filter(
-        (concern) => !knownConcerns.some((known) => concern.includes(known))
+        (concern) => !knownConcerns.some((known) => concern.includes(known)),
       );
 
       if (newConcerns.length > 0) {
         console.warn('\n⚠️  New Security Concerns Detected:');
         newConcerns.forEach((concern) => console.warn(`  - ${concern}`));
-        console.warn('\nThese should be reviewed and fixed or documented in AUTHORIZATION_MATRIX.md\n');
+        console.warn(
+          '\nThese should be reviewed and fixed or documented in AUTHORIZATION_MATRIX.md\n',
+        );
       }
     });
   });
@@ -378,17 +727,19 @@ describe('Authorization Matrix Test', () => {
         for (const route of controller.routes) {
           const canAccess = canRoleAccessRoute(UserRole.USER, route);
           const expected = EXPECTED_AUTHORIZATION_MATRIX[controller.name]?.find(
-            (e) => e.path === route.path && e.method === route.method
+            (e) => e.path === route.path && e.method === route.method,
           );
 
           if (expected) {
-            const expectedCanAccess = expected.expectedAuth === 'authenticated' ||
-              (expected.expectedAuth === 'role-based' && expected.expectedRoles?.includes(UserRole.USER));
+            const expectedCanAccess =
+              expected.expectedAuth === 'authenticated' ||
+              (expected.expectedAuth === 'role-based' &&
+                expected.expectedRoles?.includes(UserRole.USER));
 
             if (canAccess !== expectedCanAccess) {
               violations.push(
                 `${controller.name}: ${route.method} ${route.path} - ` +
-                `USER role access mismatch (expected: ${expectedCanAccess}, actual: ${canAccess})`
+                  `USER role access mismatch (expected: ${expectedCanAccess}, actual: ${canAccess})`,
               );
             }
           }
@@ -408,17 +759,19 @@ describe('Authorization Matrix Test', () => {
         for (const route of controller.routes) {
           const canAccess = canRoleAccessRoute(UserRole.REVIEWER, route);
           const expected = EXPECTED_AUTHORIZATION_MATRIX[controller.name]?.find(
-            (e) => e.path === route.path && e.method === route.method
+            (e) => e.path === route.path && e.method === route.method,
           );
 
           if (expected) {
-            const expectedCanAccess = expected.expectedAuth === 'authenticated' ||
-              (expected.expectedAuth === 'role-based' && expected.expectedRoles?.includes(UserRole.REVIEWER));
+            const expectedCanAccess =
+              expected.expectedAuth === 'authenticated' ||
+              (expected.expectedAuth === 'role-based' &&
+                expected.expectedRoles?.includes(UserRole.REVIEWER));
 
             if (canAccess !== expectedCanAccess) {
               violations.push(
                 `${controller.name}: ${route.method} ${route.path} - ` +
-                `REVIEWER role access mismatch (expected: ${expectedCanAccess}, actual: ${canAccess})`
+                  `REVIEWER role access mismatch (expected: ${expectedCanAccess}, actual: ${canAccess})`,
               );
             }
           }
@@ -426,7 +779,9 @@ describe('Authorization Matrix Test', () => {
       }
 
       if (violations.length > 0) {
-        fail(`REVIEWER role access validation failed:\n${violations.join('\n')}`);
+        fail(
+          `REVIEWER role access validation failed:\n${violations.join('\n')}`,
+        );
       }
     });
 
@@ -438,17 +793,19 @@ describe('Authorization Matrix Test', () => {
         for (const route of controller.routes) {
           const canAccess = canRoleAccessRoute(UserRole.ADMIN, route);
           const expected = EXPECTED_AUTHORIZATION_MATRIX[controller.name]?.find(
-            (e) => e.path === route.path && e.method === route.method
+            (e) => e.path === route.path && e.method === route.method,
           );
 
           if (expected) {
-            const expectedCanAccess = expected.expectedAuth !== 'public' &&
-              (expected.expectedAuth !== 'role-based' || expected.expectedRoles?.includes(UserRole.ADMIN));
+            const expectedCanAccess =
+              expected.expectedAuth !== 'public' &&
+              (expected.expectedAuth !== 'role-based' ||
+                expected.expectedRoles?.includes(UserRole.ADMIN));
 
             if (canAccess !== expectedCanAccess) {
               violations.push(
                 `${controller.name}: ${route.method} ${route.path} - ` +
-                `ADMIN role access mismatch (expected: ${expectedCanAccess}, actual: ${canAccess})`
+                  `ADMIN role access mismatch (expected: ${expectedCanAccess}, actual: ${canAccess})`,
               );
             }
           }
@@ -471,7 +828,7 @@ describe('Authorization Matrix Test', () => {
           if (route.hasContractAdminGuard && !route.hasRolesGuard) {
             violations.push(
               `${controller.name}: ${route.method} ${route.path} - ` +
-              'ContractAdminGuard used without RolesGuard'
+                'ContractAdminGuard used without RolesGuard',
             );
           }
         }
@@ -480,7 +837,7 @@ describe('Authorization Matrix Test', () => {
       if (violations.length > 0) {
         fail(
           `Guard combination validation failed:\n${violations.join('\n')}\n\n` +
-            'ContractAdminGuard should always be used with RolesGuard and @Roles(UserRole.ADMIN)'
+            'ContractAdminGuard should always be used with RolesGuard and @Roles(UserRole.ADMIN)',
         );
       }
     });
@@ -516,8 +873,12 @@ function findControllerFiles(dir: string): string[] {
 
   for (const entry of entries) {
     const fullPath = path.join(dir, entry.name);
-    
-    if (entry.isDirectory() && !entry.name.startsWith('.') && entry.name !== 'node_modules') {
+
+    if (
+      entry.isDirectory() &&
+      !entry.name.startsWith('.') &&
+      entry.name !== 'node_modules'
+    ) {
       files.push(...findControllerFiles(fullPath));
     } else if (entry.isFile() && entry.name.endsWith('.controller.ts')) {
       files.push(fullPath);
@@ -534,33 +895,32 @@ function analyzeControllerFile(filePath: string): ControllerInfo | null {
   try {
     const content = fs.readFileSync(filePath, 'utf-8');
     const fileName = path.basename(filePath, '.controller.ts');
-    
+
     // Extract controller class name
     const controllerMatch = content.match(/export class (\w+Controller)/);
     if (!controllerMatch) return null;
-    
-    const controllerName = controllerMatch[1];
+
     const routes: RouteInfo[] = [];
 
     // Extract routes by looking for method decorators
     const methodDecorators = ['@Get', '@Post', '@Put', '@Patch', '@Delete'];
-    
+
     for (const decorator of methodDecorators) {
       const regex = new RegExp(
         `${decorator}\\(['"]([^'"]+)['"]\\)[\\s\\S]*?\\n[\\s\\S]*?(?:@UseGuards|@Roles|@Public|async |function )`,
-        'g'
+        'g',
       );
-      
+
       let match;
       while ((match = regex.exec(content)) !== null) {
         const path = match[1];
         const method = decorator.substring(1).toUpperCase();
-        
+
         // Extract the surrounding context to check for guards
         const routeStart = match.index;
         const routeEnd = content.indexOf(')', routeStart) + 1;
         const routeContext = content.substring(routeStart, routeEnd + 500);
-        
+
         const routeInfo: RouteInfo = {
           path,
           method,
@@ -590,12 +950,12 @@ function analyzeControllerFile(filePath: string): ControllerInfo | null {
  */
 function extractRoles(context: string): UserRole[] {
   const roles: UserRole[] = [];
-  
+
   // Look for @Roles decorator
   const rolesMatch = context.match(/@Roles\(([^)]+)\)/);
   if (rolesMatch) {
     const rolesContent = rolesMatch[1];
-    
+
     if (rolesContent.includes('UserRole.ADMIN')) {
       roles.push(UserRole.ADMIN);
     }
@@ -606,30 +966,32 @@ function extractRoles(context: string): UserRole[] {
       roles.push(UserRole.USER);
     }
   }
-  
+
   return roles;
 }
 
 /**
  * Determine authorization decision based on guards and decorators
  */
-function determineAuthorizationDecision(context: string): 'public' | 'authenticated' | 'role-based' | 'ip-allowlist' | 'none' {
+function determineAuthorizationDecision(
+  context: string,
+): 'public' | 'authenticated' | 'role-based' | 'ip-allowlist' | 'none' {
   if (context.includes('@Public()')) {
     return 'public';
   }
-  
+
   if (context.includes('IpAllowlistGuard')) {
     return 'ip-allowlist';
   }
-  
+
   if (context.includes('RolesGuard')) {
     return 'role-based';
   }
-  
+
   if (context.includes('JwtAuthGuard')) {
     return 'authenticated';
   }
-  
+
   return 'none';
 }
 

@@ -1,5 +1,18 @@
-import { Controller, Get, Param, Post, Body, Delete, UseGuards } from '@nestjs/common';
-import { ApiTags, ApiOperation, ApiResponse, ApiBearerAuth } from '@nestjs/swagger';
+import {
+  Controller,
+  Get,
+  Param,
+  Post,
+  Body,
+  Delete,
+  UseGuards,
+} from '@nestjs/common';
+import {
+  ApiTags,
+  ApiOperation,
+  ApiResponse,
+  ApiBearerAuth,
+} from '@nestjs/swagger';
 import { FeatureFlagsService } from './feature-flags.service';
 import {
   UpsertFeatureFlagDto,
@@ -120,7 +133,8 @@ export class FeatureFlagsController {
   @ApiBearerAuth('JWT-auth')
   @ApiOperation({
     summary: 'Delete feature flag (admin only)',
-    description: 'Removes a feature flag from the system configuration. Requires admin role.',
+    description:
+      'Removes a feature flag from the system configuration. Requires admin role.',
   })
   @ApiResponse({
     status: 200,
