@@ -78,6 +78,8 @@ import { SnapshotsModule } from './snapshot/snapshot.module';
 import { ReconciliationModule } from './reconciliation/reconciliation.module';
 import { TransactionModule } from './transaction/transaction.module';
 import { PriceAlertModule } from './price-alert/price-alert.module';
+import { ProfilingModule } from './common/profiling/profiling.module';
+import { QueryCountMiddleware } from './common/profiling/query-count.middleware';
 
 @Module({
   imports: [
@@ -211,6 +213,9 @@ import { PriceAlertModule } from './price-alert/price-alert.module';
 
     // Idempotency for write endpoints
     IdempotencyModule,
+
+    // Query profiling (dev-only, enabled via QUERY_PROFILING=true)
+    ProfilingModule,
   ],
   controllers: [AppController, TestController, TestExceptionController],
   providers: [
@@ -238,5 +243,11 @@ export class AppModule implements NestModule {
   configure(consumer: MiddlewareConsumer) {
     // Apply request ID and logging middleware to all routes
     consumer.apply(RequestIdMiddleware, LoggerMiddleware).forRoutes('*');
+
+    // Apply query-count profiling middleware when QUERY_PROFILING=true.
+    // Off by default — zero overhead in production.
+    if (process.env['QUERY_PROFILING']?.toLowerCase() === 'true') {
+      consumer.apply(QueryCountMiddleware).forRoutes('*');
+    }
   }
 }
