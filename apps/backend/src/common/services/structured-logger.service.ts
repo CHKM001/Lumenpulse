@@ -35,28 +35,29 @@ export class StructuredLoggerService extends ConsoleLogger {
         (trimmed.startsWith('[') && trimmed.endsWith(']'))
       ) {
         try {
-          const parsed = JSON.parse(trimmed);
+          const parsed: unknown = JSON.parse(trimmed);
           if (
             typeof parsed === 'object' &&
             parsed !== null &&
             !Array.isArray(parsed)
           ) {
-            if (!parsed.correlationId && correlationId !== 'unknown') {
-              parsed.correlationId = correlationId;
+            const record = parsed as Record<string, unknown>;
+            if (!record.correlationId && correlationId !== 'unknown') {
+              record.correlationId = correlationId;
             }
-            if (!parsed.requestId && parsed.correlationId) {
-              parsed.requestId = parsed.correlationId;
+            if (!record.requestId && record.correlationId) {
+              record.requestId = record.correlationId;
             }
-            if (!parsed.timestamp) {
-              parsed.timestamp = timestamp;
+            if (!record.timestamp) {
+              record.timestamp = timestamp;
             }
-            if (!parsed.level) {
-              parsed.level = level;
+            if (!record.level) {
+              record.level = level;
             }
-            if (!parsed.context && logContext) {
-              parsed.context = logContext;
+            if (!record.context && logContext) {
+              record.context = logContext;
             }
-            return JSON.stringify(parsed);
+            return JSON.stringify(record);
           }
         } catch {
           // Fall through to plain string formatting
@@ -111,31 +112,56 @@ export class StructuredLoggerService extends ConsoleLogger {
 
   override log(message: unknown, ...optionalParams: unknown[]): void {
     const context = this.extractContext(optionalParams);
-    const formatted = this.formatStructured('log', message, context, ...optionalParams);
+    const formatted = this.formatStructured(
+      'log',
+      message,
+      context,
+      ...optionalParams,
+    );
     super.log(formatted);
   }
 
   override error(message: unknown, ...optionalParams: unknown[]): void {
     const context = this.extractContext(optionalParams);
-    const formatted = this.formatStructured('error', message, context, ...optionalParams);
+    const formatted = this.formatStructured(
+      'error',
+      message,
+      context,
+      ...optionalParams,
+    );
     super.error(formatted);
   }
 
   override warn(message: unknown, ...optionalParams: unknown[]): void {
     const context = this.extractContext(optionalParams);
-    const formatted = this.formatStructured('warn', message, context, ...optionalParams);
+    const formatted = this.formatStructured(
+      'warn',
+      message,
+      context,
+      ...optionalParams,
+    );
     super.warn(formatted);
   }
 
   override debug(message: unknown, ...optionalParams: unknown[]): void {
     const context = this.extractContext(optionalParams);
-    const formatted = this.formatStructured('debug', message, context, ...optionalParams);
+    const formatted = this.formatStructured(
+      'debug',
+      message,
+      context,
+      ...optionalParams,
+    );
     super.debug(formatted);
   }
 
   override verbose(message: unknown, ...optionalParams: unknown[]): void {
     const context = this.extractContext(optionalParams);
-    const formatted = this.formatStructured('verbose', message, context, ...optionalParams);
+    const formatted = this.formatStructured(
+      'verbose',
+      message,
+      context,
+      ...optionalParams,
+    );
     super.verbose(formatted);
   }
 

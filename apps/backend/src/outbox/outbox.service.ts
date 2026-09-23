@@ -71,7 +71,7 @@ export class OutboxService {
     const resolvedCorrelationId =
       correlationId ||
       (typeof payload._correlationId === 'string'
-        ? (payload._correlationId as string)
+        ? payload._correlationId
         : undefined) ||
       (RequestContextService.getCorrelationId() !== 'unknown'
         ? RequestContextService.getCorrelationId()

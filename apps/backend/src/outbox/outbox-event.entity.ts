@@ -32,7 +32,6 @@ export class OutboxEvent {
   @Column({ type: 'varchar', length: 255, nullable: true })
   correlationId: string | null;
 
-
   @Column({
     type: 'enum',
     enum: OutboxEventStatus,

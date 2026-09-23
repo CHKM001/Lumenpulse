@@ -27,7 +27,8 @@ export interface RequestContext {
  */
 @Injectable()
 export class RequestContextService implements OnModuleInit {
-  private static readonly globalStorage = new AsyncLocalStorage<RequestContext>();
+  private static readonly globalStorage =
+    new AsyncLocalStorage<RequestContext>();
   private readonly storage = RequestContextService.globalStorage;
 
   onModuleInit(): void {
@@ -66,7 +67,6 @@ export class RequestContextService implements OnModuleInit {
   static run<T>(context: RequestContext, fn: () => T): T {
     return RequestContextService.globalStorage.run(context, fn);
   }
-
 
   /**
    * Run a function with the given request context
@@ -114,4 +114,3 @@ export class RequestContextService implements OnModuleInit {
     return store?.[key] as T | undefined;
   }
 }
-
