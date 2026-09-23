@@ -40,7 +40,10 @@ describe('RequestIdMiddleware', () => {
     );
     expect(req.correlationId).toBe('corr-123');
     expect(req.requestId).toBe('corr-123');
-    expect(res.setHeader).toHaveBeenCalledWith(CORRELATION_ID_HEADER, 'corr-123');
+    expect(res.setHeader).toHaveBeenCalledWith(
+      CORRELATION_ID_HEADER,
+      'corr-123',
+    );
     expect(res.setHeader).toHaveBeenCalledWith(REQUEST_ID_HEADER, 'corr-123');
     expect(next).toHaveBeenCalledTimes(1);
   });
@@ -65,7 +68,10 @@ describe('RequestIdMiddleware', () => {
     );
     expect(req.correlationId).toBe('req-456');
     expect(req.requestId).toBe('req-456');
-    expect(res.setHeader).toHaveBeenCalledWith(CORRELATION_ID_HEADER, 'req-456');
+    expect(res.setHeader).toHaveBeenCalledWith(
+      CORRELATION_ID_HEADER,
+      'req-456',
+    );
     expect(res.setHeader).toHaveBeenCalledWith(REQUEST_ID_HEADER, 'req-456');
     expect(next).toHaveBeenCalledTimes(1);
   });
@@ -100,4 +106,3 @@ describe('RequestIdMiddleware', () => {
     );
   });
 });
-

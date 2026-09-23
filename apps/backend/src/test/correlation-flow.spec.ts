@@ -60,157 +60,180 @@ describe('End-to-End Correlation ID Tracing: Worked Example (#1421)', () => {
     } as any;
 
     let apiExecuted = false;
-    await new Promise<void>((resolve) => {
-      requestIdMiddleware.use(incomingReq, apiRes, async () => {
-        apiExecuted = true;
-        expect(RequestContextService.getCorrelationId()).toBe(
-          clientProvidedCorrelationId,
-        );
-        expect(responseHeaders[CORRELATION_ID_HEADER]).toBe(
-          clientProvidedCorrelationId,
-        );
-        expect(responseHeaders[REQUEST_ID_HEADER]).toBe(
-          clientProvidedCorrelationId,
-        );
-
-        recordLog('1_API_INBOUND', 'log', {
-          msg: 'Inbound contribution request received',
-          contributor: 'GABC123...',
-          roundId: 1,
-        });
-
-        // ──────────────────────────────────────────────────────────────────────
-        // Component 2: Transactional Outbox Event Publishing
-        // ──────────────────────────────────────────────────────────────────────
-        const mockRepo = {
-          create: jest.fn((dto) => dto),
-          save: jest.fn(async (e) => ({ ...e, id: 'outbox-evt-101' })),
-          find: jest.fn(),
-          countBy: jest.fn().mockResolvedValue(0),
-        };
-        const mockJobLock = {
-          tryAcquire: jest.fn().mockResolvedValue(true),
-          release: jest.fn().mockResolvedValue(undefined),
-        };
-        const mockMetrics = {
-          setOutboxRelayLagSeconds: jest.fn(),
-          recordOutboxAttempt: jest.fn(),
-          setOutboxDeadLetterVolume: jest.fn(),
-        };
-
-        const outboxService = new OutboxService(
-          mockRepo as any,
-          mockJobLock as any,
-          mockMetrics as any,
-        );
-
-        const publishedEvent = await outboxService.publish('contribution.created', {
-          contributor: 'GABC123...',
-          roundId: 1,
-          amount: '500',
-        });
-
-        expect(publishedEvent.correlationId).toBe(clientProvidedCorrelationId);
-        recordLog('2_OUTBOX_PUBLISH', 'log', {
-          msg: 'Outbox event staged within database transaction',
-          eventId: 'outbox-evt-101',
-          eventType: publishedEvent.eventType,
-        });
-
-        // ──────────────────────────────────────────────────────────────────────
-        // Component 3: Outbox Poller & Dispatch
-        // ──────────────────────────────────────────────────────────────────────
-        const outboxEventRecord: OutboxEvent = {
-          ...publishedEvent,
-          id: 'outbox-evt-101',
-          attempts: 0,
-          status: OutboxEventStatus.PENDING,
-          createdAt: new Date(),
-          lastError: null,
-          processedAt: null,
-          deadLetterAt: null,
-        };
-
-        mockRepo.find.mockResolvedValue([outboxEventRecord]);
-
-        let queuedBullMqJobData: any = null;
-        outboxService.registerHandler(async (_eventType, payload) => {
-          recordLog('3_OUTBOX_RELAY_DISPATCH', 'log', {
-            msg: 'Outbox poller dispatched event to consumer',
-            correlationId: RequestContextService.getCorrelationId(),
-          });
-
-          // Handlers enqueue queue jobs with correlation context
-          queuedBullMqJobData = {
-            ...payload,
-            correlationId: RequestContextService.getCorrelationId(),
-          };
-        });
-
-        await outboxService.pollAndDispatch();
-        expect(queuedBullMqJobData).toBeDefined();
-        expect(queuedBullMqJobData.correlationId).toBe(clientProvidedCorrelationId);
-
-        // ──────────────────────────────────────────────────────────────────────
-        // Component 4: BullMQ Queue Worker
-        // ──────────────────────────────────────────────────────────────────────
-        let pythonServiceHeaderReceived: string | null = null;
-        const mockDetectionService = {
-          detect: jest.fn(async () => {
-            recordLog('4_QUEUE_WORKER_EXECUTION', 'log', {
-              msg: 'Fraud detector evaluating contribution in background job',
-              correlationId: RequestContextService.getCorrelationId(),
-            });
-
-            // ──────────────────────────────────────────────────────────────────
-            // Component 5: Outbound Call to Python Service
-            // ──────────────────────────────────────────────────────────────────
-            const mockHttpService = {
-              post: jest.fn((_url: string, _body: any, config: any) => {
-                pythonServiceHeaderReceived =
-                  config.headers?.[CORRELATION_ID_HEADER];
-                return of({ data: { sentiment: 0.95 } });
-              }),
-            };
-            const mockConfigService = {
-              get: jest.fn().mockReturnValue('http://localhost:8000'),
-            };
-
-            const sentimentService = new SentimentService(
-              mockHttpService as any,
-              mockConfigService as any,
+    await new Promise<void>((resolve, reject) => {
+      requestIdMiddleware.use(incomingReq, apiRes, () => {
+        void (async () => {
+          try {
+            apiExecuted = true;
+            expect(RequestContextService.getCorrelationId()).toBe(
+              clientProvidedCorrelationId,
+            );
+            expect(responseHeaders[CORRELATION_ID_HEADER]).toBe(
+              clientProvidedCorrelationId,
+            );
+            expect(responseHeaders[REQUEST_ID_HEADER]).toBe(
+              clientProvidedCorrelationId,
             );
 
-            await sentimentService.analyzeSentiment('Contribution note: legit grant donation');
-
-            recordLog('5_PYTHON_SERVICE_OUTBOUND', 'log', {
-              msg: 'Dispatched outbound call to Python service',
-              target: 'http://localhost:8000/analyze',
-              correlationId: RequestContextService.getCorrelationId(),
+            recordLog('1_API_INBOUND', 'log', {
+              msg: 'Inbound contribution request received',
+              contributor: 'GABC123...',
+              roundId: 1,
             });
 
-            return [];
-          }),
-        };
+            // ──────────────────────────────────────────────────────────────────────
+            // Component 2: Transactional Outbox Event Publishing
+            // ──────────────────────────────────────────────────────────────────────
+            const mockRepo = {
+              create: jest.fn((dto: unknown) => dto as OutboxEvent),
+              save: jest.fn((e: unknown) =>
+                Promise.resolve({
+                  ...(e as Record<string, unknown>),
+                  id: 'outbox-evt-101',
+                } as unknown as OutboxEvent),
+              ),
+              find: jest.fn(),
+              countBy: jest.fn().mockResolvedValue(0),
+            };
+            const mockJobLock = {
+              tryAcquire: jest.fn().mockResolvedValue(true),
+              release: jest.fn().mockResolvedValue(undefined),
+            };
+            const mockMetrics = {
+              setOutboxRelayLagSeconds: jest.fn(),
+              recordOutboxAttempt: jest.fn(),
+              setOutboxDeadLetterVolume: jest.fn(),
+            };
 
-        const mockModerationService = {
-          createReport: jest.fn(),
-        };
+            const outboxService = new OutboxService(
+              mockRepo as any,
+              mockJobLock as any,
+              mockMetrics as any,
+            );
 
-        const processor = new SuspiciousContributionProcessor(
-          mockDetectionService as any,
-          mockModerationService as any,
-        );
+            const publishedEvent = await outboxService.publish(
+              'contribution.created',
+              {
+                contributor: 'GABC123...',
+                roundId: 1,
+                amount: '500',
+              },
+            );
 
-        const bullJob = {
-          id: 'bull-job-555',
-          data: queuedBullMqJobData,
-        } as any;
+            expect(publishedEvent.correlationId).toBe(
+              clientProvidedCorrelationId,
+            );
+            recordLog('2_OUTBOX_PUBLISH', 'log', {
+              msg: 'Outbox event staged within database transaction',
+              eventId: 'outbox-evt-101',
+              eventType: publishedEvent.eventType,
+            });
 
-        await processor.process(bullJob);
+            // ──────────────────────────────────────────────────────────────────────
+            // Component 3: Outbox Poller & Dispatch
+            // ──────────────────────────────────────────────────────────────────────
+            const outboxEventRecord: OutboxEvent = {
+              ...publishedEvent,
+              id: 'outbox-evt-101',
+              attempts: 0,
+              status: OutboxEventStatus.PENDING,
+              createdAt: new Date(),
+              lastError: null,
+              processedAt: null,
+              deadLetterAt: null,
+            };
 
-        expect(pythonServiceHeaderReceived).toBe(clientProvidedCorrelationId);
-        resolve();
+            mockRepo.find.mockResolvedValue([outboxEventRecord]);
+
+            let queuedBullMqJobData: any = null;
+            outboxService.registerHandler(async (_eventType, payload) => {
+              recordLog('3_OUTBOX_RELAY_DISPATCH', 'log', {
+                msg: 'Outbox poller dispatched event to consumer',
+                correlationId: RequestContextService.getCorrelationId(),
+              });
+
+              // Handlers enqueue queue jobs with correlation context
+              queuedBullMqJobData = {
+                ...payload,
+                correlationId: RequestContextService.getCorrelationId(),
+              };
+              await Promise.resolve();
+            });
+
+            await outboxService.pollAndDispatch();
+            expect(queuedBullMqJobData).toBeDefined();
+            expect(queuedBullMqJobData.correlationId).toBe(
+              clientProvidedCorrelationId,
+            );
+
+            // ──────────────────────────────────────────────────────────────────────
+            // Component 4: BullMQ Queue Worker
+            // ──────────────────────────────────────────────────────────────────────
+            let pythonServiceHeaderReceived: string | null = null;
+            const mockDetectionService = {
+              detect: jest.fn(async () => {
+                recordLog('4_QUEUE_WORKER_EXECUTION', 'log', {
+                  msg: 'Fraud detector evaluating contribution in background job',
+                  correlationId: RequestContextService.getCorrelationId(),
+                });
+
+                // ──────────────────────────────────────────────────────────────────
+                // Component 5: Outbound Call to Python Service
+                // ──────────────────────────────────────────────────────────────────
+                const mockHttpService = {
+                  post: jest.fn((_url: string, _body: any, config: any) => {
+                    pythonServiceHeaderReceived =
+                      config.headers?.[CORRELATION_ID_HEADER];
+                    return of({ data: { sentiment: 0.95 } });
+                  }),
+                };
+                const mockConfigService = {
+                  get: jest.fn().mockReturnValue('http://localhost:8000'),
+                };
+
+                const sentimentService = new SentimentService(
+                  mockHttpService as any,
+                  mockConfigService as any,
+                );
+
+                await sentimentService.analyzeSentiment(
+                  'Contribution note: legit grant donation',
+                );
+
+                recordLog('5_PYTHON_SERVICE_OUTBOUND', 'log', {
+                  msg: 'Dispatched outbound call to Python service',
+                  target: 'http://localhost:8000/analyze',
+                  correlationId: RequestContextService.getCorrelationId(),
+                });
+
+                return [];
+              }),
+            };
+
+            const mockModerationService = {
+              createReport: jest.fn(),
+            };
+
+            const processor = new SuspiciousContributionProcessor(
+              mockDetectionService as any,
+              mockModerationService as any,
+            );
+
+            const bullJob = {
+              id: 'bull-job-555',
+              data: queuedBullMqJobData,
+            } as any;
+
+            await processor.process(bullJob);
+
+            expect(pythonServiceHeaderReceived).toBe(
+              clientProvidedCorrelationId,
+            );
+            resolve();
+          } catch (err: unknown) {
+            reject(err instanceof Error ? err : new Error(String(err)));
+          }
+        })();
       });
     });
 

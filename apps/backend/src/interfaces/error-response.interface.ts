@@ -10,4 +10,3 @@ export interface ErrorResponse {
   requestId: string;
   correlationId: string;
 }
-

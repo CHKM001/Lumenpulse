@@ -36,6 +36,7 @@ describe('SuspiciousContributionProcessor', () => {
     let capturedCorrelationId: string | null = null;
     detectionService.detect.mockImplementation(async () => {
       capturedCorrelationId = RequestContextService.getCorrelationId();
+      await Promise.resolve();
       return [];
     });
 
@@ -49,7 +50,7 @@ describe('SuspiciousContributionProcessor', () => {
         roundTotalContributions: '1000',
         contributorTotalInRound: '100',
         correlationId: 'corr-fraud-job-777',
-      } as ContributionJobPayload,
+      },
     } as Job<ContributionJobPayload>;
 
     const result = await processor.process(job);
@@ -62,6 +63,7 @@ describe('SuspiciousContributionProcessor', () => {
     let capturedCorrelationId: string | null = null;
     detectionService.detect.mockImplementation(async () => {
       capturedCorrelationId = RequestContextService.getCorrelationId();
+      await Promise.resolve();
       return [];
     });
 
@@ -74,7 +76,7 @@ describe('SuspiciousContributionProcessor', () => {
         amount: '100',
         roundTotalContributions: '1000',
         contributorTotalInRound: '100',
-      } as ContributionJobPayload,
+      },
     } as Job<ContributionJobPayload>;
 
     await processor.process(job);

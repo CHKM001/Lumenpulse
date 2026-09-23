@@ -257,7 +257,7 @@ describe('OutboxService', () => {
       repo.findOneBy.mockResolvedValue({
         id: 'dl-2',
         status: OutboxEventStatus.PROCESSED,
-      } as OutboxEvent);
+      });
       await expect(service.inspectDeadLetter('dl-2')).rejects.toThrow(
         'Dead-letter outbox event not found',
       );
@@ -317,7 +317,7 @@ describe('OutboxService', () => {
       repo.findOneBy.mockResolvedValue({
         id: 'dl-3',
         status: OutboxEventStatus.PROCESSED,
-      } as unknown as OutboxEvent);
+      });
 
       await expect(service.replayDeadLetter('dl-3')).rejects.toThrow(
         'is not in the dead-letter queue',
@@ -334,16 +334,20 @@ describe('OutboxService', () => {
 
   describe('correlationId propagation', () => {
     it('captures correlationId from RequestContext during publish', async () => {
-      repo.create.mockImplementation((dto: any) => dto);
+      repo.create.mockImplementation((dto: unknown) => dto);
       let savedCorrelationId: string | null = null;
-      repo.save.mockImplementation(async (event: any) => {
-        savedCorrelationId = event.correlationId;
-        return event;
+      repo.save.mockImplementation((event: unknown) => {
+        const evt = event as OutboxEvent;
+        savedCorrelationId = evt.correlationId ?? null;
+        return Promise.resolve(evt);
       });
 
-      await RequestContextService.run({ correlationId: 'corr-pub-123' }, async () => {
-        await service.publish('test.event', { foo: 'bar' });
-      });
+      await RequestContextService.run(
+        { correlationId: 'corr-pub-123' },
+        async () => {
+          await service.publish('test.event', { foo: 'bar' });
+        },
+      );
 
       expect(savedCorrelationId).toBe('corr-pub-123');
     });
@@ -364,7 +368,9 @@ describe('OutboxService', () => {
 
       let capturedCorrelationIdInHandler: string | null = null;
       service.registerHandler(async () => {
-        capturedCorrelationIdInHandler = RequestContextService.getCorrelationId();
+        capturedCorrelationIdInHandler =
+          RequestContextService.getCorrelationId();
+        await Promise.resolve();
       });
 
       await service.pollAndDispatch();
@@ -373,4 +379,3 @@ describe('OutboxService', () => {
     });
   });
 });
-

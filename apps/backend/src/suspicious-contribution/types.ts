@@ -11,7 +11,6 @@ export interface ContributionJobPayload {
   correlationId?: string;
 }
 
-
 export interface ContributionFinding {
   rule: string;
   description: string;
