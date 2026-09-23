@@ -5872,6 +5872,195 @@
         ]
       }
     },
+    "/admin/audit-logs/export": {
+      "get": {
+        "description": "Produces a scoped extract of user-activity, audit-operation and admin blockchain-action records for an auditor, filtered by an inclusive date range and optionally by actor and record type. Returns JSON, or CSV with format=csv. Every export is itself recorded in the audit trail as an \"audit.export\" action.",
+        "operationId": "AuditController_exportAuditLogs",
+        "parameters": [
+          {
+            "name": "from",
+            "required": true,
+            "in": "query",
+            "description": "Start of the range (ISO 8601, inclusive)",
+            "schema": {
+              "example": "2026-01-01T00:00:00.000Z",
+              "type": "string"
+            }
+          },
+          {
+            "name": "to",
+            "required": true,
+            "in": "query",
+            "description": "End of the range (ISO 8601, inclusive)",
+            "schema": {
+              "example": "2026-03-31T23:59:59.999Z",
+              "type": "string"
+            }
+          },
+          {
+            "name": "actorId",
+            "required": false,
+            "in": "query",
+            "description": "Only records by this actor (user id for user activity, admin id for blockchain actions)",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "recordType",
+            "required": false,
+            "in": "query",
+            "description": "Only this record type; all types when omitted",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "user_activity",
+                "audit_operation",
+                "admin_blockchain_action"
+              ]
+            }
+          },
+          {
+            "name": "format",
+            "required": false,
+            "in": "query",
+            "description": "Response format",
+            "schema": {
+              "default": "json",
+              "type": "string",
+              "enum": [
+                "json",
+                "csv"
+              ]
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Audit extract (text/csv when format=csv)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AuditExportResponseDto"
+                }
+              },
+              "text/csv": {
+                "schema": {
+                  "$ref": "#/components/schemas/AuditExportResponseDto"
+                }
+              }
+            },
+            "headers": {
+              "X-Request-Id": {
+                "description": "Correlation id for this request",
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid filters",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            },
+            "headers": {
+              "X-Request-Id": {
+                "description": "Correlation id for this request",
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            },
+            "headers": {
+              "X-Request-Id": {
+                "description": "Correlation id for this request",
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden (admin only)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            },
+            "headers": {
+              "X-Request-Id": {
+                "description": "Correlation id for this request",
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Rate limit exceeded",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            },
+            "headers": {
+              "X-Request-Id": {
+                "description": "Correlation id for this request",
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Unexpected server error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            },
+            "headers": {
+              "X-Request-Id": {
+                "description": "Correlation id for this request",
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "JWT-auth": []
+          }
+        ],
+        "summary": "Export an audit extract (admin only)",
+        "tags": [
+          "admin-audit-logs"
+        ]
+      }
+    },
     "/users": {
       "get": {
         "operationId": "UsersController_findAll",
@@ -10098,6 +10287,91 @@
         "summary": "Disable 2FA",
         "tags": [
           "auth"
+        ]
+      }
+    },
+    "/health/schedulers": {
+      "get": {
+        "description": "Each registered scheduled job reports its last start, last success, last failure, and duration. Jobs that have not succeeded within their expected interval are marked stale and cause HTTP 503.",
+        "operationId": "SchedulerHealthController_getSchedulerHealth",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "All scheduled jobs succeeded within their expected intervals.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SchedulerHealthResponseDto"
+                }
+              }
+            },
+            "headers": {
+              "X-Request-Id": {
+                "description": "Correlation id for this request",
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Rate limit exceeded",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            },
+            "headers": {
+              "X-Request-Id": {
+                "description": "Correlation id for this request",
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Unexpected server error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            },
+            "headers": {
+              "X-Request-Id": {
+                "description": "Correlation id for this request",
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "One or more scheduled jobs have not succeeded within their expected interval.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            },
+            "headers": {
+              "X-Request-Id": {
+                "description": "Correlation id for this request",
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        },
+        "summary": "Reports last run times, outcomes, durations, and staleness of scheduled jobs",
+        "tags": [
+          "health"
         ]
       }
     },
@@ -17632,91 +17906,6 @@
           }
         },
         "summary": "Deployment smoke check for CI and Vercel",
-        "tags": [
-          "health"
-        ]
-      }
-    },
-    "/health/schedulers": {
-      "get": {
-        "description": "Each registered scheduled job reports its last start, last success, last failure, and duration. Jobs that have not succeeded within their expected interval are marked stale and cause HTTP 503.",
-        "operationId": "SchedulerHealthController_getSchedulerHealth",
-        "parameters": [],
-        "responses": {
-          "200": {
-            "description": "All scheduled jobs succeeded within their expected intervals.",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/SchedulerHealthResponseDto"
-                }
-              }
-            },
-            "headers": {
-              "X-Request-Id": {
-                "description": "Correlation id for this request",
-                "schema": {
-                  "type": "string"
-                }
-              }
-            }
-          },
-          "429": {
-            "description": "Rate limit exceeded",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ErrorResponseDto"
-                }
-              }
-            },
-            "headers": {
-              "X-Request-Id": {
-                "description": "Correlation id for this request",
-                "schema": {
-                  "type": "string"
-                }
-              }
-            }
-          },
-          "500": {
-            "description": "Unexpected server error",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ErrorResponseDto"
-                }
-              }
-            },
-            "headers": {
-              "X-Request-Id": {
-                "description": "Correlation id for this request",
-                "schema": {
-                  "type": "string"
-                }
-              }
-            }
-          },
-          "503": {
-            "description": "One or more scheduled jobs have not succeeded within their expected interval.",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ErrorResponseDto"
-                }
-              }
-            },
-            "headers": {
-              "X-Request-Id": {
-                "description": "Correlation id for this request",
-                "schema": {
-                  "type": "string"
-                }
-              }
-            }
-          }
-        },
-        "summary": "Reports last run times, outcomes, durations, and staleness of scheduled jobs",
         "tags": [
           "health"
         ]
@@ -39120,6 +39309,125 @@
           "decisions"
         ]
       },
+      "AuditExportFiltersDto": {
+        "type": "object",
+        "properties": {
+          "from": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "to": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "actorId": {
+            "type": "string",
+            "nullable": true
+          },
+          "recordTypes": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "enum": [
+                "user_activity",
+                "audit_operation",
+                "admin_blockchain_action"
+              ]
+            }
+          }
+        },
+        "required": [
+          "from",
+          "to",
+          "actorId",
+          "recordTypes"
+        ]
+      },
+      "AuditExportRecordDto": {
+        "type": "object",
+        "properties": {
+          "recordType": {
+            "enum": [
+              "user_activity",
+              "audit_operation",
+              "admin_blockchain_action"
+            ],
+            "type": "string"
+          },
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "actorId": {
+            "type": "string",
+            "nullable": true,
+            "description": "User or admin who performed the action"
+          },
+          "action": {
+            "type": "string",
+            "description": "Action name, or \"METHOD /path\" for blockchain actions",
+            "example": "login"
+          },
+          "ipAddress": {
+            "type": "string",
+            "nullable": true,
+            "example": "127.0.0.1"
+          },
+          "details": {
+            "type": "object",
+            "nullable": true,
+            "description": "Type-specific fields (request metadata, tx hash, ...)",
+            "additionalProperties": true
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        },
+        "required": [
+          "recordType",
+          "id",
+          "actorId",
+          "action",
+          "ipAddress",
+          "details",
+          "createdAt"
+        ]
+      },
+      "AuditExportResponseDto": {
+        "type": "object",
+        "properties": {
+          "filters": {
+            "$ref": "#/components/schemas/AuditExportFiltersDto"
+          },
+          "generatedAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "count": {
+            "type": "number",
+            "description": "Number of records in this extract"
+          },
+          "truncated": {
+            "type": "boolean",
+            "description": "True when more records matched than the export row limit; narrow the range and export again"
+          },
+          "records": {
+            "description": "Matching records, oldest first",
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/AuditExportRecordDto"
+            }
+          }
+        },
+        "required": [
+          "filters",
+          "generatedAt",
+          "count",
+          "truncated",
+          "records"
+        ]
+      },
       "ProfileResponseDto": {
         "type": "object",
         "properties": {
@@ -39655,6 +39963,123 @@
         },
         "required": [
           "token"
+        ]
+      },
+      "SchedulerJobStatusDto": {
+        "type": "object",
+        "properties": {
+          "job": {
+            "type": "string",
+            "description": "Job name",
+            "example": "news-ingestion"
+          },
+          "description": {
+            "type": "string",
+            "description": "Human-readable job description",
+            "example": "Fetches latest news articles"
+          },
+          "lastStart": {
+            "type": "string",
+            "nullable": true,
+            "description": "ISO timestamp of the most recent run start, or null if never run",
+            "example": "2026-01-01T00:00:00.000Z"
+          },
+          "lastSuccess": {
+            "type": "string",
+            "nullable": true,
+            "description": "ISO timestamp of the most recent successful run, or null",
+            "example": "2026-01-01T00:00:05.000Z"
+          },
+          "lastFailure": {
+            "type": "string",
+            "nullable": true,
+            "description": "ISO timestamp of the most recent failed run, or null",
+            "example": null
+          },
+          "lastDurationMs": {
+            "type": "number",
+            "nullable": true,
+            "description": "Duration in ms of the most recent completed run, or null",
+            "example": 5000
+          },
+          "expectedIntervalMs": {
+            "type": "number",
+            "description": "Expected maximum interval between successful runs (ms)",
+            "example": 3600000
+          },
+          "stale": {
+            "type": "boolean",
+            "description": "True when the job has not succeeded within its expected interval",
+            "example": false
+          },
+          "staleReason": {
+            "type": "string",
+            "description": "Machine-readable reason for staleness, or null when healthy",
+            "enum": [
+              "never-succeeded",
+              "last-success-too-old"
+            ],
+            "nullable": true,
+            "example": null
+          }
+        },
+        "required": [
+          "job",
+          "description",
+          "lastStart",
+          "lastSuccess",
+          "lastFailure",
+          "lastDurationMs",
+          "expectedIntervalMs",
+          "stale",
+          "staleReason"
+        ]
+      },
+      "SchedulerHealthResponseDto": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "string",
+            "enum": [
+              "ok",
+              "error"
+            ],
+            "example": "ok"
+          },
+          "summary": {
+            "type": "string",
+            "enum": [
+              "healthy",
+              "stale-jobs"
+            ],
+            "example": "healthy"
+          },
+          "checkedAt": {
+            "type": "string",
+            "description": "ISO timestamp of the check",
+            "example": "2026-01-01T00:00:00.000Z"
+          },
+          "staleJobs": {
+            "description": "Jobs currently considered stale",
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/SchedulerJobStatusDto"
+            }
+          },
+          "jobs": {
+            "description": "All registered jobs",
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/SchedulerJobStatusDto"
+            }
+          }
+        },
+        "required": [
+          "status",
+          "summary",
+          "checkedAt",
+          "staleJobs",
+          "jobs"
         ]
       },
       "MetricsHealthDto": {
@@ -42055,123 +42480,6 @@
           "environment",
           "summary",
           "checks"
-        ]
-      },
-      "SchedulerJobStatusDto": {
-        "type": "object",
-        "properties": {
-          "job": {
-            "type": "string",
-            "description": "Job name",
-            "example": "news-ingestion"
-          },
-          "description": {
-            "type": "string",
-            "description": "Human-readable job description",
-            "example": "Fetches latest news articles"
-          },
-          "lastStart": {
-            "type": "string",
-            "nullable": true,
-            "description": "ISO timestamp of the most recent run start, or null if never run",
-            "example": "2026-01-01T00:00:00.000Z"
-          },
-          "lastSuccess": {
-            "type": "string",
-            "nullable": true,
-            "description": "ISO timestamp of the most recent successful run, or null",
-            "example": "2026-01-01T00:00:05.000Z"
-          },
-          "lastFailure": {
-            "type": "string",
-            "nullable": true,
-            "description": "ISO timestamp of the most recent failed run, or null",
-            "example": null
-          },
-          "lastDurationMs": {
-            "type": "number",
-            "nullable": true,
-            "description": "Duration in ms of the most recent completed run, or null",
-            "example": 5000
-          },
-          "expectedIntervalMs": {
-            "type": "number",
-            "description": "Expected maximum interval between successful runs (ms)",
-            "example": 3600000
-          },
-          "stale": {
-            "type": "boolean",
-            "description": "True when the job has not succeeded within its expected interval",
-            "example": false
-          },
-          "staleReason": {
-            "type": "string",
-            "description": "Machine-readable reason for staleness, or null when healthy",
-            "enum": [
-              "never-succeeded",
-              "last-success-too-old"
-            ],
-            "nullable": true,
-            "example": null
-          }
-        },
-        "required": [
-          "job",
-          "description",
-          "lastStart",
-          "lastSuccess",
-          "lastFailure",
-          "lastDurationMs",
-          "expectedIntervalMs",
-          "stale",
-          "staleReason"
-        ]
-      },
-      "SchedulerHealthResponseDto": {
-        "type": "object",
-        "properties": {
-          "status": {
-            "type": "string",
-            "enum": [
-              "ok",
-              "error"
-            ],
-            "example": "ok"
-          },
-          "summary": {
-            "type": "string",
-            "enum": [
-              "healthy",
-              "stale-jobs"
-            ],
-            "example": "healthy"
-          },
-          "checkedAt": {
-            "type": "string",
-            "description": "ISO timestamp of the check",
-            "example": "2026-01-01T00:00:00.000Z"
-          },
-          "staleJobs": {
-            "description": "Jobs currently considered stale",
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/SchedulerJobStatusDto"
-            }
-          },
-          "jobs": {
-            "description": "All registered jobs",
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/SchedulerJobStatusDto"
-            }
-          }
-        },
-        "required": [
-          "status",
-          "summary",
-          "checkedAt",
-          "staleJobs",
-          "jobs"
         ]
       },
       "RegistryConfigDto": {
