@@ -555,6 +555,11 @@ const EXPECTED_AUTHORIZATION_MATRIX: Record<
   ],
 };
 
+// Helper function to fail tests with an error message
+const fail = (message: string): never => {
+  throw new Error(message);
+};
+
 describe('Authorization Matrix Test', () => {
   let app: INestApplication;
 
