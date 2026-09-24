@@ -27,6 +27,7 @@ import { ContractAdminAuditService } from '../../contract-admin/contract-admin-a
 import { Roles, UserRole } from '../../auth/decorators/auth.decorators';
 import { AuditBlockchainAction } from '../../admin-audit/decorators/audit-blockchain-action.decorator';
 import { Request as ExpressRequest } from 'express';
+import { RateLimitPolicy } from '../../common/rate-limit/rate-limit.config';
 
 // Define a minimal user interface for type safety
 interface RequestUser {
@@ -44,6 +45,8 @@ interface AuthenticatedRequest extends ExpressRequest {
 @ApiBearerAuth()
 @UseGuards(JwtAuthGuard, ContractAdminGuard)
 @Roles(UserRole.ADMIN)
+// Every route builds and simulates a Soroban contract transaction.
+@RateLimitPolicy('contractSimulation')
 @Controller('admin/matching-pool')
 export class MatchingPoolAdminController {
   private readonly logger = new Logger(MatchingPoolAdminController.name);

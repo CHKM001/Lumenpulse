@@ -12,7 +12,6 @@ import {
   HttpCode,
   HttpStatus,
 } from '@nestjs/common';
-import { Throttle } from '@nestjs/throttler';
 import {
   ApiTags,
   ApiBearerAuth,
@@ -29,10 +28,7 @@ import {
   WatchlistResponseDto,
 } from './dto/watchlist.dto';
 import { WatchlistItemType } from './watchlist-item.entity';
-import {
-  getWatchlistReadThrottleOverride,
-  getWatchlistWriteThrottleOverride,
-} from '../common/rate-limit/rate-limit.config';
+import { RateLimitPolicy } from '../common/rate-limit/rate-limit.config';
 
 @ApiTags('watchlist')
 @ApiBearerAuth('JWT-auth')
@@ -42,7 +38,7 @@ export class WatchlistController {
   constructor(private readonly watchlistService: WatchlistService) {}
 
   @Get()
-  @Throttle(getWatchlistReadThrottleOverride())
+  @RateLimitPolicy('watchlistRead')
   @ApiOperation({
     summary: 'Get user watchlist',
     description:
@@ -70,7 +66,7 @@ export class WatchlistController {
   }
 
   @Post()
-  @Throttle(getWatchlistWriteThrottleOverride())
+  @RateLimitPolicy('watchlistWrite')
   @HttpCode(HttpStatus.CREATED)
   @ApiOperation({
     summary: 'Add item to watchlist',
@@ -94,7 +90,7 @@ export class WatchlistController {
   }
 
   @Post('toggle')
-  @Throttle(getWatchlistWriteThrottleOverride())
+  @RateLimitPolicy('watchlistWrite')
   @HttpCode(HttpStatus.OK)
   @ApiOperation({
     summary: 'Toggle watchlist item',
@@ -122,7 +118,7 @@ export class WatchlistController {
   }
 
   @Patch(':id')
-  @Throttle(getWatchlistWriteThrottleOverride())
+  @RateLimitPolicy('watchlistWrite')
   @ApiOperation({
     summary: 'Update watchlist item',
     description: "Update a watchlist item's notes, image, name, or sort order",
@@ -145,7 +141,7 @@ export class WatchlistController {
   }
 
   @Delete(':id')
-  @Throttle(getWatchlistWriteThrottleOverride())
+  @RateLimitPolicy('watchlistWrite')
   @HttpCode(HttpStatus.NO_CONTENT)
   @ApiOperation({
     summary: 'Remove item from watchlist',
@@ -165,7 +161,7 @@ export class WatchlistController {
   }
 
   @Patch('reorder')
-  @Throttle(getWatchlistWriteThrottleOverride())
+  @RateLimitPolicy('watchlistWrite')
   @ApiOperation({
     summary: 'Reorder watchlist items',
     description:
@@ -187,7 +183,7 @@ export class WatchlistController {
   }
 
   @Get('check')
-  @Throttle(getWatchlistReadThrottleOverride())
+  @RateLimitPolicy('watchlistRead')
   @ApiOperation({
     summary: 'Check if symbol is in watchlist',
     description:
