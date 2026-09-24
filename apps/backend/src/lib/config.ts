@@ -493,6 +493,14 @@ const envSchema = z
       .optional(),
     SOROBAN_INDEXER_START_LEDGER: z.coerce.number().int().min(0).default(0),
 
+    // Drift alert ingest from data-processing (#1447)
+    DRIFT_ALERT_INGEST_SECRET: z.string().trim().optional(),
+    DRIFT_ALERT_TIMESTAMP_TOLERANCE_MS: z.coerce
+      .number()
+      .int()
+      .min(1_000)
+      .optional(),
+
     TELEGRAM_BOT_TOKEN: z.string().trim().optional(),
     METRICS_ALLOWED_IPS: z.string().trim().optional(),
     USE_MOCK_TRANSACTIONS: z.preprocess(
@@ -975,6 +983,14 @@ const optionalSummary = [
     String(parsedEnv.SOROBAN_INDEXER_START_LEDGER),
   ],
   [
+    'DRIFT_ALERT_INGEST_SECRET',
+    parsedEnv.DRIFT_ALERT_INGEST_SECRET ? '[REDACTED]' : '(not set)',
+  ],
+  [
+    'DRIFT_ALERT_TIMESTAMP_TOLERANCE_MS',
+    String(parsedEnv.DRIFT_ALERT_TIMESTAMP_TOLERANCE_MS ?? 300_000),
+  ],
+  [
     'TELEGRAM_BOT_TOKEN',
     parsedEnv.TELEGRAM_BOT_TOKEN ? '[REDACTED]' : '(not set)',
   ],
@@ -1159,6 +1175,11 @@ export const config = Object.freeze({
     ingestSecret: parsedEnv.SOROBAN_INGEST_SECRET,
     timestampToleranceMs: parsedEnv.SOROBAN_TIMESTAMP_TOLERANCE_MS ?? 300_000,
     indexerStartLedger: parsedEnv.SOROBAN_INDEXER_START_LEDGER,
+  }),
+  driftAlerts: Object.freeze({
+    ingestSecret: parsedEnv.DRIFT_ALERT_INGEST_SECRET,
+    timestampToleranceMs:
+      parsedEnv.DRIFT_ALERT_TIMESTAMP_TOLERANCE_MS ?? 300_000,
   }),
   metrics: Object.freeze({
     allowedIps: Object.freeze(splitCsv(parsedEnv.METRICS_ALLOWED_IPS)),
