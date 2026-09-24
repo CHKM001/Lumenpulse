@@ -9,6 +9,7 @@ import WatchlistPanel from "@/components/watchlist-panel";
 import ContributionInsightsWidget from "@/components/contribution-insights-widget";
 import PortfolioOverviewCard from "@/components/portfolio-overview-card";
 import MarketInsightsCard from "@/components/market-insights-card";
+import AnalyticsChartsSection from "@/components/analytics-charts-section";
 
 import { useStellarAccount } from "@/hooks/useStellarAccount";
 import { useStellarWallet } from "@/app/providers";
@@ -293,6 +294,11 @@ export default function DashboardPage() {
                   lastUpdatedLabel={portfolioLastUpdatedLabel}
                   refresh={refreshPortfolio}
                 />
+              </div>
+
+              {/* Analytics: sentiment and daily KPI snapshot series */}
+              <div className="bg-gray-900/50 backdrop-blur-sm p-6 rounded-xl border border-white/10 shadow-xl col-span-1 md:col-span-2 lg:col-span-3">
+                <AnalyticsChartsSection />
               </div>
             </div>
           </>

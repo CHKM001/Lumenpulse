@@ -24106,6 +24106,73 @@
         ]
       }
     },
+    "/analytics/chart-meta": {
+      "get": {
+        "description": "Returns series, axis and time-range labels for the data served by /analytics/chart-data.",
+        "operationId": "AnalyticsController_getChartMeta",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Chart series metadata",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ChartMetaDto"
+                }
+              }
+            },
+            "headers": {
+              "X-Request-Id": {
+                "description": "Correlation id for this request",
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Rate limit exceeded",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            },
+            "headers": {
+              "X-Request-Id": {
+                "description": "Correlation id for this request",
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Unexpected server error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            },
+            "headers": {
+              "X-Request-Id": {
+                "description": "Correlation id for this request",
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        },
+        "summary": "Describe the chart series",
+        "tags": [
+          "analytics"
+        ]
+      }
+    },
     "/analytics/chart-data": {
       "get": {
         "description": "Returns sentiment data bucketed by hour or day for time-series charts (e.g., Recharts).",
@@ -43455,6 +43522,105 @@
           "userId",
           "generatedAt",
           "signals"
+        ]
+      },
+      "ChartAxisMetaDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "Stable identifier that series reference via `axisId`."
+          },
+          "label": {
+            "type": "string",
+            "description": "Human-readable axis title."
+          }
+        },
+        "required": [
+          "id",
+          "label"
+        ]
+      },
+      "ChartSeriesMetaDto": {
+        "type": "object",
+        "properties": {
+          "key": {
+            "type": "string",
+            "description": "Property of ChartDataPointDto that holds this series' values."
+          },
+          "label": {
+            "type": "string",
+            "description": "Human-readable series name for legends, tooltips and table headers."
+          },
+          "axisId": {
+            "type": "string",
+            "description": "Id of the y-axis this series is plotted against."
+          }
+        },
+        "required": [
+          "key",
+          "label",
+          "axisId"
+        ]
+      },
+      "ChartRangeOptionDto": {
+        "type": "object",
+        "properties": {
+          "range": {
+            "enum": [
+              "7d",
+              "30d"
+            ],
+            "type": "string"
+          },
+          "interval": {
+            "enum": [
+              "1h",
+              "1d"
+            ],
+            "type": "string"
+          },
+          "label": {
+            "type": "string",
+            "description": "Human-readable label for the time-range selector."
+          }
+        },
+        "required": [
+          "range",
+          "interval",
+          "label"
+        ]
+      },
+      "ChartMetaDto": {
+        "type": "object",
+        "properties": {
+          "xAxis": {
+            "$ref": "#/components/schemas/ChartAxisMetaDto"
+          },
+          "yAxes": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ChartAxisMetaDto"
+            }
+          },
+          "series": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ChartSeriesMetaDto"
+            }
+          },
+          "ranges": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ChartRangeOptionDto"
+            }
+          }
+        },
+        "required": [
+          "xAxis",
+          "yAxes",
+          "series",
+          "ranges"
         ]
       },
       "ChartDataPointDto": {
