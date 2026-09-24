@@ -6,7 +6,10 @@
   "private": true,
   "license": "UNLICENSED",
   "scripts": {
-    "build": "nest build",
+    "build": "nest build && npm run openapi:generate",
+    "openapi:generate": "node dist/scripts/generate-openapi.js",
+    "openapi:check": "node dist/scripts/generate-openapi.js --check",
+    "openapi:baseline": "node dist/scripts/generate-openapi.js --update-baseline",
     "format": "prettier --write \"src/**/*.ts\" \"test/**/*.ts\"",
     "start": "nest start",
     "start:dev": "nest start --watch",

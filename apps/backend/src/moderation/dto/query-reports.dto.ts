@@ -5,6 +5,7 @@ import { ReportStatus, ReportType } from '../entities/content-report.entity';
 export class QueryReportsDto {
   @ApiPropertyOptional({
     enum: ReportStatus,
+    enumName: 'ReportStatus',
     description: 'Filter by report status',
     example: ReportStatus.PENDING,
   })
@@ -14,6 +15,7 @@ export class QueryReportsDto {
 
   @ApiPropertyOptional({
     enum: ReportType,
+    enumName: 'ReportType',
     description: 'Filter by target type',
     example: ReportType.PROJECT,
   })
