@@ -94,7 +94,8 @@ export class DriftAlertResponseDto {
   notificationIds: string[];
 
   @ApiProperty({
-    description: 'Whether this delivery was a duplicate of a previously accepted alert',
+    description:
+      'Whether this delivery was a duplicate of a previously accepted alert',
   })
   duplicate: boolean;
 }

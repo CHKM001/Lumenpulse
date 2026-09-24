@@ -84,7 +84,8 @@ export class DriftAlertIngestionController {
   })
   @ApiResponse({
     status: 401,
-    description: 'Unauthorized - missing/invalid signature, or timestamp outside tolerance',
+    description:
+      'Unauthorized - missing/invalid signature, or timestamp outside tolerance',
   })
   async ingest(
     @Req() req: RequestWithRawBody,

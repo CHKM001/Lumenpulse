@@ -44,7 +44,9 @@ export class DriftAlertIngestionGuard implements CanActivate {
   private readonly timestampToleranceMs: number;
 
   constructor(private readonly configService: ConfigService) {
-    const rawSecret = this.configService.get<string>('DRIFT_ALERT_INGEST_SECRET');
+    const rawSecret = this.configService.get<string>(
+      'DRIFT_ALERT_INGEST_SECRET',
+    );
     if (!rawSecret) {
       this.logger.warn(
         'DRIFT_ALERT_INGEST_SECRET is not set — drift alert ingest endpoint will reject all requests',

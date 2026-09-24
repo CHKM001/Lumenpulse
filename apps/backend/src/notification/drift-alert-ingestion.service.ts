@@ -1,19 +1,7 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { NotificationService } from './notification.service';
-import {
-  Notification,
-  NotificationType,
-  NotificationSeverity,
-} from './notification.entity';
-import { EventCategory } from '../common/event-catalog';
+import { NotificationType, NotificationSeverity } from './notification.entity';
 import { DriftAlertRequestDto } from './dto/drift-alert.dto';
-
-/**
- * Default event category for drift alerts routed in from data-processing.
- * Maps to the `anomaly` preference key in the fanout service, so users who
- * opted out of anomaly/system alerts do not receive drift notifications.
- */
-const DEFAULT_DRIFT_EVENT_CATEGORY = EventCategory.SYSTEM;
 
 const DEFAULT_DRIFT_SEVERITY = NotificationSeverity.HIGH;
 

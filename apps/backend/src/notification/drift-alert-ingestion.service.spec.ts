@@ -1,18 +1,19 @@
 import { Test, TestingModule } from '@nestjs/testing';
-import { getRepositoryToken } from '@nestjs/typeorm';
 import { NotificationService } from './notification.service';
 import { DriftAlertIngestionService } from './drift-alert-ingestion.service';
 import { DriftAlertRequestDto } from './dto/drift-alert.dto';
-import { Notification, NotificationSeverity, NotificationType } from './notification.entity';
+import { NotificationSeverity, NotificationType } from './notification.entity';
 
 describe('DriftAlertIngestionService', () => {
   let service: DriftAlertIngestionService;
   let createSpy: jest.Mock;
 
   beforeEach(async () => {
-    createSpy = jest.fn().mockImplementation((dto) =>
-      Promise.resolve({ id: `notif-${createSpy.mock.calls.length}`, ...dto }),
-    );
+    createSpy = jest
+      .fn()
+      .mockImplementation((dto) =>
+        Promise.resolve({ id: `notif-${createSpy.mock.calls.length}`, ...dto }),
+      );
 
     const module: TestingModule = await Test.createTestingModule({
       providers: [
@@ -24,7 +25,9 @@ describe('DriftAlertIngestionService', () => {
       ],
     }).compile();
 
-    service = module.get<DriftAlertIngestionService>(DriftAlertIngestionService);
+    service = module.get<DriftAlertIngestionService>(
+      DriftAlertIngestionService,
+    );
   });
 
   const baseAlert: DriftAlertRequestDto = {
