@@ -34,7 +34,11 @@ import { AdminAuditModule } from '../admin-audit/admin-audit.module';
     SchedulerModule,
     AdminAuditModule,
   ],
-  controllers: [SorobanEventsController, SorobanEventsDeadLetterController, SorobanEventReplayController],
+  controllers: [
+    SorobanEventsController,
+    SorobanEventsDeadLetterController,
+    SorobanEventReplayController,
+  ],
   providers: [
     SorobanEventsService,
     SorobanEventsProcessor,
