@@ -45,6 +45,9 @@ if "vaderSentiment.vaderSentiment" in sys.modules:
     sys.modules["vaderSentiment.vaderSentiment"].SentimentIntensityAnalyzer = type(
         "SentimentIntensityAnalyzer", (), {"polarity_scores": lambda self, t: {"neg": 0, "neu": 1, "pos": 0, "compound": 0}}
     )
+    # Public API constants imported by src/analytics/sentiment.py (#1456)
+    sys.modules["vaderSentiment.vaderSentiment"].BOOSTER_DICT = {}
+    sys.modules["vaderSentiment.vaderSentiment"].NEGATE = []
 
 # stellar_sdk exception stubs
 if "stellar_sdk.exceptions" in sys.modules:
