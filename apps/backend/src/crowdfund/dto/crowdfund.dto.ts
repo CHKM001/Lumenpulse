@@ -8,7 +8,7 @@ import {
   ValidateNested,
 } from 'class-validator';
 import { Type } from 'class-transformer';
-import { ApiProperty, ApiPropertyOptional, ApiSchema } from '@nestjs/swagger';
+import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 
 // ── Enums ────────────────────────────────────────────────────────────────────
 
@@ -307,8 +307,6 @@ export class BootstrapDemoDataResponseDto {
   projectIds: number[];
 }
 
-// Renamed in the spec: grants/dto/grants.dto.ts has a different ContributionRecordDto.
-@ApiSchema({ name: 'CrowdfundContributionRecordDto' })
 export class ContributionRecordDto {
   @ApiProperty({ description: 'Project ID', example: 1 })
   projectId: number;

@@ -262,7 +262,7 @@ exports[`Users API Schema Snapshot should match the OpenAPI snapshot for Users A
       ],
       "responses": {
         "200": {
-          "description": "Primary account updated",
+          "description": "",
         },
       },
       "security": [
@@ -274,7 +274,6 @@ exports[`Users API Schema Snapshot should match the OpenAPI snapshot for Users A
       "tags": [
         "users",
       ],
-      "x-no-response-body": true,
     },
   },
   "/users/me/avatar": {

@@ -10,48 +10,7 @@ import {
 import type { Response } from 'express';
 import { MetricsService } from './metrics.service';
 import { IpAllowlistGuard } from './ip-allowlist.guard';
-import {
-  ApiTags,
-  ApiOperation,
-  ApiResponse,
-  ApiOkResponse,
-  ApiProduces,
-  ApiQuery,
-} from '@nestjs/swagger';
-import { MetricsHealthDto } from './dto/metrics-health.dto';
-
-/** JSON shape returned by `getMetricsAsJson`: prom-client metrics keyed by name. */
-const METRIC_JSON_SCHEMA = {
-  type: 'object',
-  description: 'Metrics keyed by metric name',
-  additionalProperties: {
-    type: 'object',
-    properties: {
-      name: { type: 'string', example: 'http_requests_total' },
-      help: { type: 'string', example: 'Total number of HTTP requests' },
-      type: {
-        type: 'string',
-        example: 'counter',
-        description: 'counter | gauge | histogram | summary',
-      },
-      aggregator: { type: 'string', example: 'sum' },
-      values: {
-        type: 'array',
-        items: {
-          type: 'object',
-          properties: {
-            value: { type: 'number', example: 42 },
-            labels: {
-              type: 'object',
-              additionalProperties: { type: 'string' },
-            },
-            metricName: { type: 'string' },
-          },
-        },
-      },
-    },
-  },
-};
+import { ApiTags, ApiOperation, ApiResponse } from '@nestjs/swagger';
 import { ErrorCode } from '../common/enums/error-code.enum';
 
 /**
@@ -84,26 +43,9 @@ export class MetricsController {
     description:
       'Returns metrics in Prometheus text format for scraping by monitoring tools like Prometheus',
   })
-  @ApiQuery({
-    name: 'format',
-    required: false,
-    enum: ['prometheus', 'json'],
-    description: 'Output format (defaults to prometheus)',
-  })
-  @ApiProduces('text/plain', 'application/json')
-  @ApiOkResponse({
-    description:
-      'Metrics in Prometheus format (text/plain; version=0.0.4), or JSON when format=json',
-    content: {
-      'text/plain': {
-        schema: {
-          type: 'string',
-          example:
-            '# HELP http_requests_total Total number of HTTP requests\n# TYPE http_requests_total counter\nhttp_requests_total{method="GET",route="/api/users",status="200"} 42',
-        },
-      },
-      'application/json': { schema: METRIC_JSON_SCHEMA },
-    },
+  @ApiResponse({
+    status: 200,
+    description: 'Metrics in Prometheus format (text/plain; version=0.0.4)',
   })
   @ApiResponse({
     status: 403,
@@ -150,9 +92,9 @@ export class MetricsController {
     summary: 'Get application metrics in JSON format',
     description: 'Returns metrics as JSON for custom integrations',
   })
-  @ApiOkResponse({
+  @ApiResponse({
+    status: 200,
     description: 'Metrics in JSON format',
-    schema: METRIC_JSON_SCHEMA,
   })
   @ApiResponse({
     status: 403,
@@ -184,11 +126,11 @@ export class MetricsController {
     summary: 'Get health status',
     description: 'Returns the health status of the application',
   })
-  @ApiOkResponse({
+  @ApiResponse({
+    status: 200,
     description: 'Health status',
-    type: MetricsHealthDto,
   })
-  getHealth(): MetricsHealthDto {
+  getHealth(): Record<string, unknown> {
     return {
       status: 'ok',
       timestamp: new Date().toISOString(),

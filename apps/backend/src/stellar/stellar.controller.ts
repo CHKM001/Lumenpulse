@@ -24,12 +24,10 @@ import {
   ApiParam,
   ApiQuery,
   ApiBearerAuth,
-  ApiOkResponse,
 } from '@nestjs/swagger';
 import { StellarService } from './stellar.service';
 import { getStellarReadThrottleOverride } from '../common/rate-limit/rate-limit.config';
 import { AccountBalancesDto } from './dto/balance.dto';
-import { AccountOperationDto } from './dto/account-operation.dto';
 import {
   AssetDiscoveryQueryDto,
   AssetDiscoveryResponseDto,
@@ -111,10 +109,9 @@ export class StellarController {
     description: 'Stellar account public key',
     example: 'GA5ZSEJYB37JRC5AVCIA5MOP4RHTM335X2KGX3IHOJAPP5RE34K4KZVN',
   })
-  @ApiOkResponse({
-    description:
-      'Most recent operations for the account (newest first), as returned by Horizon',
-    type: [AccountOperationDto],
+  @ApiResponse({
+    status: 200,
+    description: 'Account transactions retrieved successfully',
   })
   async getAccountTransactions(
     @Param('publicKey') publicKey: string,

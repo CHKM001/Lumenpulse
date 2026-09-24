@@ -13,8 +13,10 @@ const HTTP_METHODS = ['get', 'put', 'post', 'delete', 'patch'] as const;
 
 /**
  * Guard class name → security scheme the operation must declare.
- * Guards not listed here (rate limiting, IP allowlists, feature flags) don't
- * need client credentials.
+ *
+ * Every guard that can reach a route must be listed here or in
+ * NON_CREDENTIAL_GUARDS; an unclassified guard fails the lint, so a new auth
+ * guard can't silently ship without a matching scheme in the contract.
  */
 export const GUARD_SECURITY_SCHEMES: Record<string, string> = {
   JwtAuthGuard: JWT_SECURITY_SCHEME,
@@ -23,7 +25,16 @@ export const GUARD_SECURITY_SCHEMES: Record<string, string> = {
   ContractAdminTrustedCallerGuard: API_KEY_SECURITY_SCHEME,
   WebhookVerificationGuard: WEBHOOK_SIGNATURE_SECURITY_SCHEME,
   SorobanEventIngestionGuard: WEBHOOK_SIGNATURE_SECURITY_SCHEME,
+  DriftAlertIngestionGuard: WEBHOOK_SIGNATURE_SECURITY_SCHEME,
 };
+
+/** Guards that gate a route without asking the client for credentials. */
+export const NON_CREDENTIAL_GUARDS: ReadonlySet<string> = new Set([
+  'RateLimitGuard',
+  'ThrottlerGuard',
+  'IpAllowlistGuard',
+  'FeatureFlagGuard',
+]);
 
 /** operationId → names of guard classes protecting that route. */
 export type RouteGuardMap = Map<string, string[]>;
@@ -34,22 +45,93 @@ export type RouteGuardMap = Map<string, string[]>;
  */
 export function lintOpenApiDocument(
   document: OpenAPIObject,
-  routeGuards: RouteGuardMap = new Map(),
+  routeGuards: RouteGuardMap,
 ): string[] {
-  const violations: string[] = [];
+  return [
+    ...lintDocumentation(document),
+    ...lintSecurity(document, routeGuards),
+  ];
+}
 
-  for (const [path, pathItem] of Object.entries(document.paths)) {
-    for (const method of HTTP_METHODS) {
-      const operation = pathItem[method];
-      if (!operation) continue;
-      const where = `${method.toUpperCase()} ${path} [${operation.operationId}]`;
-      violations.push(
-        ...lintOperation(operation, routeGuards).map(
-          (message) => `${where}: ${message}`,
-        ),
-      );
+/**
+ * Checks that every operation declares exactly the security its guards
+ * enforce. These violations are never baselined: a wrong auth contract makes
+ * generated clients send the wrong credentials, or none.
+ */
+export function lintSecurity(
+  document: OpenAPIObject,
+  routeGuards: RouteGuardMap,
+): string[] {
+  const known = new Set(
+    Object.keys(document.components?.securitySchemes ?? {}),
+  );
+
+  return forEachOperation(document, (operation) => {
+    const problems: string[] = [];
+    const operationId = operation.operationId ?? '';
+    const guards = routeGuards.get(operationId);
+    if (!guards) {
+      return [
+        'not found in the controller graph, so its guards (and required security) cannot be verified',
+      ];
     }
-  }
+
+    const required = new Set<string>();
+    for (const guard of guards) {
+      const scheme = GUARD_SECURITY_SCHEMES[guard];
+      if (scheme) {
+        required.add(scheme);
+      } else if (!NON_CREDENTIAL_GUARDS.has(guard)) {
+        problems.push(
+          `guarded by unclassified guard ${guard}; add it to GUARD_SECURITY_SCHEMES (if it checks client credentials) or NON_CREDENTIAL_GUARDS in src/openapi/openapi.lint.ts`,
+        );
+      }
+    }
+
+    // Each entry of `security` is an alternative (OR); schemes inside one
+    // entry are all required (AND). Guards all run, so every alternative
+    // must carry every scheme the guards demand.
+    const alternatives = (operation.security ?? []).map((req) =>
+      Object.keys(req),
+    );
+    const declared = new Set(alternatives.flat());
+
+    for (const scheme of declared) {
+      if (!known.has(scheme)) {
+        problems.push(`declares unknown security scheme "${scheme}"`);
+      } else if (!required.has(scheme)) {
+        problems.push(
+          `declares the "${scheme}" security scheme but no guard on the route enforces it`,
+        );
+      }
+    }
+
+    for (const scheme of required) {
+      const guardNames = guards
+        .filter((g) => GUARD_SECURITY_SCHEMES[g] === scheme)
+        .join(', ');
+      if (!declared.has(scheme)) {
+        problems.push(
+          `guarded by ${guardNames} but does not declare the "${scheme}" security scheme`,
+        );
+      } else if (alternatives.some((alt) => !alt.includes(scheme))) {
+        problems.push(
+          `declares "${scheme}" as optional (a separate security alternative), but ${guardNames} always requires it; declare all schemes in one requirement, e.g. @ApiSecurity({ '${[...required].join("': [], '")}': [] })`,
+        );
+      }
+    }
+
+    return problems;
+  });
+}
+
+/**
+ * Checks the parts of the contract that make generated clients usable:
+ * tags, summaries, and typed bodies. Pre-existing gaps are tracked in
+ * `openapi-lint-baseline.json` (see scripts/generate-openapi.ts).
+ */
+export function lintDocumentation(document: OpenAPIObject): string[] {
+  const violations = forEachOperation(document, lintOperationDocs);
 
   for (const [name, schema] of Object.entries(
     document.components?.schemas ?? {},
@@ -64,10 +146,25 @@ export function lintOpenApiDocument(
   return violations;
 }
 
-function lintOperation(
-  operation: OperationObject,
-  routeGuards: RouteGuardMap,
+function forEachOperation(
+  document: OpenAPIObject,
+  lint: (operation: OperationObject) => string[],
 ): string[] {
+  const violations: string[] = [];
+  for (const [path, pathItem] of Object.entries(document.paths)) {
+    for (const method of HTTP_METHODS) {
+      const operation = pathItem[method];
+      if (!operation) continue;
+      const where = `${method.toUpperCase()} ${path} [${operation.operationId}]`;
+      violations.push(
+        ...lint(operation).map((message) => `${where}: ${message}`),
+      );
+    }
+  }
+  return violations;
+}
+
+function lintOperationDocs(operation: OperationObject): string[] {
   const problems: string[] = [];
 
   if (!operation.tags?.length) {
@@ -104,21 +201,6 @@ function lintOperation(
     );
     if (schemas.length === 0 || schemas.some((s) => !s || isEmptySchema(s))) {
       problems.push('request body has no schema (type the @Body() with a DTO)');
-    }
-  }
-
-  const declared = new Set(
-    (operation.security ?? []).flatMap((req) => Object.keys(req)),
-  );
-  const guards = operation.operationId
-    ? (routeGuards.get(operation.operationId) ?? [])
-    : [];
-  for (const guard of guards) {
-    const scheme = GUARD_SECURITY_SCHEMES[guard];
-    if (scheme && !declared.has(scheme)) {
-      problems.push(
-        `guarded by ${guard} but does not declare the "${scheme}" security scheme`,
-      );
     }
   }
 

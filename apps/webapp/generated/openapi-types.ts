@@ -106,6 +106,7 @@ export interface components {
     User: {
       id: string;
       email: string;
+      passwordHash: string;
       firstName: string;
       lastName: string;
       displayName: string;
@@ -115,6 +116,7 @@ export interface components {
       role: "user" | "reviewer" | "admin";
       preferences: Record<string, unknown>;
       twoFactorEnabled: boolean;
+      twoFactorSecret: string | null;
       stellarAccounts: components['schemas']['StellarAccount'][];
       createdAt: string;
       updatedAt: string;

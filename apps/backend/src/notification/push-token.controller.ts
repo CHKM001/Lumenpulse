@@ -10,12 +10,12 @@ import {
 } from '@nestjs/common';
 import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
-import { JWT_SECURITY_SCHEME } from '../openapi/openapi.constants';
 import {
   DeregisterPushTokenDto,
   RegisterPushTokenDto,
 } from './dto/push-token.dto';
 import { PushTokenService } from './push-token.service';
+import { JWT_SECURITY_SCHEME } from '../openapi/openapi.constants';
 
 @ApiTags('notification-devices')
 @ApiBearerAuth(JWT_SECURITY_SCHEME)

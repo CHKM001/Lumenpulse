@@ -14,12 +14,14 @@ import AnalyticsChartsSection from "@/components/analytics-charts-section";
 import { useStellarAccount } from "@/hooks/useStellarAccount";
 import { useStellarWallet } from "@/app/providers";
 import { usePortfolioSnapshot } from "@/hooks/usePortfolioSnapshot";
+import { useSignals } from "@/hooks/useSignals";
+import SignalsPanel from "@/components/signals-panel";
 import { getExplorerUrl } from "@/lib/utils";
 
 export default function DashboardPage() {
   const router = useRouter();
   const { publicKey } = useStellarWallet();
-  const [selectedAsset, setSelectedAsset] = useState<{
+   const [selectedAsset, setSelectedAsset] = useState<{
     code: string;
     issuer?: string;
     balance: string;
@@ -39,6 +41,15 @@ export default function DashboardPage() {
     lastUpdatedLabel: portfolioLastUpdatedLabel,
     refresh: refreshPortfolio,
   } = usePortfolioSnapshot(publicKey);
+
+  const { data: signalsData, isLoading: isSignalsLoading, error: signalsError, isFresh: signalsIsFresh, ageLabel: signalsAgeLabel, refresh: refreshSignals, isAuthenticated: signalsAuthenticated } = useSignals();
+
+  const portfolioAssetCodes = portfolioSummary?.assets
+    ? portfolioSummary.assets.map((asset) => ({
+        code: asset.assetCode || "XLM",
+        issuer: asset.assetIssuer || undefined,
+      }))
+    : [];
 
   return (
     <>
@@ -294,11 +305,6 @@ export default function DashboardPage() {
                   lastUpdatedLabel={portfolioLastUpdatedLabel}
                   refresh={refreshPortfolio}
                 />
-              </div>
-
-              {/* Analytics: sentiment and daily KPI snapshot series */}
-              <div className="bg-gray-900/50 backdrop-blur-sm p-6 rounded-xl border border-white/10 shadow-xl col-span-1 md:col-span-2 lg:col-span-3">
-                <AnalyticsChartsSection />
               </div>
             </div>
           </>

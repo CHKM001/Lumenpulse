@@ -17,8 +17,6 @@ import {
   ApiBearerAuth,
   ApiOperation,
   ApiResponse,
-  ApiCreatedResponse,
-  ApiOkResponse,
 } from '@nestjs/swagger';
 import { Request } from 'express';
 import { ReviewHistoryService } from './review-history.service';
@@ -29,13 +27,6 @@ import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { RolesGuard } from '../auth/roles.guard';
 import { Roles } from '../auth/decorators/auth.decorators';
 import { UserRole } from '../users/entities/user.entity';
-import { JWT_SECURITY_SCHEME } from '../openapi/openapi.constants';
-import { ReviewComment } from './entities/review-comment.entity';
-import { ReviewDecisionHistory } from './entities/review-decision-history.entity';
-import {
-  ReviewHistoryResponseDto,
-  TargetReviewHistoryResponseDto,
-} from './dto/review-history-response.dto';
 
 interface RequestWithUser extends Request {
   user: {
@@ -46,7 +37,7 @@ interface RequestWithUser extends Request {
 }
 
 @ApiTags('review-history')
-@ApiBearerAuth(JWT_SECURITY_SCHEME)
+@ApiBearerAuth('JWT-auth')
 @Controller('review-history')
 @UseGuards(JwtAuthGuard)
 export class ReviewHistoryController {
@@ -56,10 +47,7 @@ export class ReviewHistoryController {
   @UsePipes(new ValidationPipe())
   @HttpCode(HttpStatus.CREATED)
   @ApiOperation({ summary: 'Create a review comment' })
-  @ApiCreatedResponse({
-    description: 'Comment successfully created',
-    type: ReviewComment,
-  })
+  @ApiResponse({ status: 201, description: 'Comment successfully created' })
   @ApiResponse({
     status: 403,
     description: 'Forbidden - insufficient permissions',
@@ -67,7 +55,7 @@ export class ReviewHistoryController {
   async createComment(
     @Req() req: RequestWithUser,
     @Body() createCommentDto: CreateReviewCommentDto,
-  ): Promise<ReviewComment> {
+  ) {
     return this.reviewHistoryService.createComment(
       req.user.id,
       req.user.role as UserRole,
@@ -81,15 +69,12 @@ export class ReviewHistoryController {
   @UsePipes(new ValidationPipe())
   @HttpCode(HttpStatus.CREATED)
   @ApiOperation({ summary: 'Record a review decision (Admin only)' })
-  @ApiCreatedResponse({
-    description: 'Decision successfully recorded',
-    type: ReviewDecisionHistory,
-  })
+  @ApiResponse({ status: 201, description: 'Decision successfully recorded' })
   @ApiResponse({ status: 403, description: 'Forbidden - admin only' })
   async createDecision(
     @Req() req: RequestWithUser,
     @Body() createDecisionDto: CreateReviewDecisionDto,
-  ): Promise<ReviewDecisionHistory> {
+  ) {
     return this.reviewHistoryService.createDecision(
       req.user.id,
       req.user.role as UserRole,
@@ -99,14 +84,14 @@ export class ReviewHistoryController {
 
   @Get()
   @ApiOperation({ summary: 'Get review history (comments and decisions)' })
-  @ApiOkResponse({
+  @ApiResponse({
+    status: 200,
     description: 'Review history retrieved successfully',
-    type: ReviewHistoryResponseDto,
   })
   async getReviewHistory(
     @Req() req: RequestWithUser,
     @Query() query: QueryReviewHistoryDto,
-  ): Promise<ReviewHistoryResponseDto> {
+  ) {
     return this.reviewHistoryService.getReviewHistory(
       query,
       req.user.role as UserRole,
@@ -115,15 +100,15 @@ export class ReviewHistoryController {
 
   @Get('target/:targetType/:targetId')
   @ApiOperation({ summary: 'Get review history for a specific target' })
-  @ApiOkResponse({
+  @ApiResponse({
+    status: 200,
     description: 'Target review history retrieved successfully',
-    type: TargetReviewHistoryResponseDto,
   })
   async getTargetReviewHistory(
     @Req() req: RequestWithUser,
     @Param('targetType') targetType: string,
     @Param('targetId') targetId: string,
-  ): Promise<TargetReviewHistoryResponseDto> {
+  ) {
     const [comments, decisions] = await Promise.all([
       this.reviewHistoryService.getCommentsByTarget(
         targetId,
@@ -141,19 +126,13 @@ export class ReviewHistoryController {
 
   @Get('comments/:id')
   @ApiOperation({ summary: 'Get a specific comment by ID' })
-  @ApiOkResponse({
-    description: 'Comment retrieved successfully',
-    type: ReviewComment,
-  })
+  @ApiResponse({ status: 200, description: 'Comment retrieved successfully' })
   @ApiResponse({ status: 404, description: 'Comment not found' })
   @ApiResponse({
     status: 403,
     description: 'Access denied to internal comment',
   })
-  async getComment(
-    @Req() req: RequestWithUser,
-    @Param('id') id: string,
-  ): Promise<ReviewComment> {
+  async getComment(@Req() req: RequestWithUser, @Param('id') id: string) {
     return this.reviewHistoryService.getCommentById(
       id,
       req.user.role as UserRole,
@@ -162,12 +141,9 @@ export class ReviewHistoryController {
 
   @Get('decisions/:id')
   @ApiOperation({ summary: 'Get a specific decision by ID' })
-  @ApiOkResponse({
-    description: 'Decision retrieved successfully',
-    type: ReviewDecisionHistory,
-  })
+  @ApiResponse({ status: 200, description: 'Decision retrieved successfully' })
   @ApiResponse({ status: 404, description: 'Decision not found' })
-  async getDecision(@Param('id') id: string): Promise<ReviewDecisionHistory> {
+  async getDecision(@Param('id') id: string) {
     return this.reviewHistoryService.getDecisionById(id);
   }
 }

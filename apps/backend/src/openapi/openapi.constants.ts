@@ -27,3 +27,6 @@ export const IDEMPOTENT_METHODS = ['post', 'put', 'patch', 'delete'] as const;
 
 /** Committed spec location, relative to `apps/backend`. */
 export const OPENAPI_ARTIFACT_PATH = 'openapi.json';
+
+/** Pre-existing documentation gaps the lint tolerates, relative to `apps/backend`. */
+export const OPENAPI_LINT_BASELINE_PATH = 'openapi-lint-baseline.json';

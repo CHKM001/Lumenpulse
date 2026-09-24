@@ -14,7 +14,6 @@ import {
   ApiResponse,
   ApiBearerAuth,
 } from '@nestjs/swagger';
-import { JWT_SECURITY_SCHEME } from '../openapi/openapi.constants';
 import { Request } from 'express';
 import { SorobanEventReplayService } from './soroban-event-replay.service';
 import { ReplaySorobanRangeDto } from './dto/replay-range.dto';
@@ -24,6 +23,7 @@ import { RolesGuard } from '../auth/roles.guard';
 import { Roles } from '../auth/decorators/auth.decorators';
 import { User, UserRole } from '../users/entities/user.entity';
 import { AdminAuditService } from '../admin-audit/admin-audit.service';
+import { JWT_SECURITY_SCHEME } from '../openapi/openapi.constants';
 
 /**
  * Replay and Backfill Controller for the Soroban Event Indexer.
