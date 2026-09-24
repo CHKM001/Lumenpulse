@@ -61,6 +61,15 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
+      # Metro (via expo/metro-config) auto-detects this as a monorepo from
+      # apps/mobile/package.json's "lumenpulse": "file:../.." dependency and
+      # walks up to the repo root looking for node_modules there too. The
+      # mobile-checks job never hits this (tsc/jest don't invoke Metro), but
+      # `expo start --web` does, so the root workspace needs its own install.
+      - name: Install root workspace dependencies (for Metro's monorepo resolution)
+        working-directory: .
+        run: npm install --no-audit --no-fund
+
       - name: Install Playwright browsers
         run: npx playwright install --with-deps chromium
 
