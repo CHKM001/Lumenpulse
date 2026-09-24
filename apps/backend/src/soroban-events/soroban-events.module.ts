@@ -43,11 +43,6 @@ import { CrowdfundVaultProject } from '../crowdfund-sync/entities/crowdfund-vaul
     SorobanEventsDeadLetterController,
     SorobanEventReplayController,
   ],
-  controllers: [
-    SorobanEventsController,
-    SorobanEventsDeadLetterController,
-    SorobanEventReplayController,
-  ],
   providers: [
     SorobanEventsService,
     SorobanEventsProcessor,
