@@ -27,11 +27,8 @@ import { ContractAdminAuditService } from '../../contract-admin/contract-admin-a
 import { Roles, UserRole } from '../../auth/decorators/auth.decorators';
 import { AuditBlockchainAction } from '../../admin-audit/decorators/audit-blockchain-action.decorator';
 import { Request as ExpressRequest } from 'express';
-
-import { RateLimitPolicy } from '../../common/rate-limit/rate-limit.config';
-
 import { JWT_SECURITY_SCHEME } from '../../openapi/openapi.constants';
-
+import { RateLimitPolicy } from '../../common/rate-limit/rate-limit.config';
 
 // Define a minimal user interface for type safety
 interface RequestUser {
