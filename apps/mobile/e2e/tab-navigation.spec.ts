@@ -1,10 +1,10 @@
 import { test, expect } from '@playwright/test';
-import { mockAll } from './mocks';
+import { mockAll, loginViaUi } from './mocks';
 
 test.describe('Tab navigation', () => {
   test.beforeEach(async ({ page }) => {
     await mockAll(page);
-    await page.goto('/');
+    await loginViaUi(page);
   });
 
   test('switching to the Projects tab navigates to the projects screen', async ({ page }) => {

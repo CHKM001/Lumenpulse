@@ -84,7 +84,11 @@ export async function mockContribute(page: Page): Promise<void> {
 /** Catch-all so any endpoint the suite doesn't explicitly care about degrades gracefully. */
 export async function mockRemaining(page: Page): Promise<void> {
   await page.route(`${API_BASE}/**`, async (route) => {
-    await route.fulfill({ status: 200, contentType: 'application/json', body: '{}' });
+    // Most unhandled endpoints here are list/collection reads (notifications,
+    // linked accounts, portfolio history, etc.) -- an empty array is a safer
+    // generic default than {} since several contexts call .filter()/.map()
+    // on the response without a defensive Array.isArray() check first.
+    await route.fulfill({ status: 200, contentType: 'application/json', body: '[]' });
   });
 }
 
