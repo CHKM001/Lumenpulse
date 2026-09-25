@@ -31,7 +31,8 @@ import databaseConfig from './database/database.config';
 import stellarConfig from './stellar/config/stellar.config';
 import { LoggerMiddleware } from './common/middleware/logger.middleware';
 import { RequestIdMiddleware } from './common/middleware/request-id.middleware';
-import { RequestContextService } from './common/services/request-context.service';
+import { RequestContextModule } from './common/services/request-context.module';
+import { StructuredLoggerService } from './common/services/structured-logger.service';
 import { RateLimitGuard } from './common/rate-limit/rate-limit.guard';
 import { RateLimitModule } from './common/rate-limit/rate-limit.module';
 import { RateLimitStorageService } from './common/rate-limit/rate-limit.storage';
@@ -102,6 +103,9 @@ import { QueryCountMiddleware } from './common/profiling/query-count.middleware'
         };
       },
     }),
+
+    // Request-scoped context (shared AsyncLocalStorage)
+    RequestContextModule,
 
     // Scheduling
     ScheduleModule.forRoot(),
@@ -220,7 +224,7 @@ import { QueryCountMiddleware } from './common/profiling/query-count.middleware'
   controllers: [AppController, TestController, TestExceptionController],
   providers: [
     AppService,
-    RequestContextService,
+    StructuredLoggerService,
     {
       provide: APP_GUARD,
       useClass: RateLimitGuard,

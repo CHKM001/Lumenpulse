@@ -27,7 +27,11 @@ import { ContractAdminAuditService } from '../../contract-admin/contract-admin-a
 import { Roles, UserRole } from '../../auth/decorators/auth.decorators';
 import { AuditBlockchainAction } from '../../admin-audit/decorators/audit-blockchain-action.decorator';
 import { Request as ExpressRequest } from 'express';
+
 import { RateLimitPolicy } from '../../common/rate-limit/rate-limit.config';
+
+import { JWT_SECURITY_SCHEME } from '../../openapi/openapi.constants';
+
 
 // Define a minimal user interface for type safety
 interface RequestUser {
@@ -42,7 +46,7 @@ interface AuthenticatedRequest extends ExpressRequest {
 }
 
 @ApiTags('Admin — Matching Pool')
-@ApiBearerAuth()
+@ApiBearerAuth(JWT_SECURITY_SCHEME)
 @UseGuards(JwtAuthGuard, ContractAdminGuard)
 @Roles(UserRole.ADMIN)
 // Every route builds and simulates a Soroban contract transaction.
