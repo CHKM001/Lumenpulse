@@ -608,6 +608,14 @@ const envSchema = z
       .default(30_000),
     IDEMPOTENCY_CLEANUP_CRON: z.string().trim().default('0 3 * * *'),
 
+    // Runtime secret rotation (see config/secret-rotation.service.ts)
+    SECRET_ROTATION_TRIGGER_TOKEN: z.string().trim().optional(),
+    SECRET_ROTATION_OVERLAP_MS: z.coerce
+      .number()
+      .int()
+      .min(0)
+      .default(86_400_000),
+
     SHUTDOWN_GRACE_PERIOD_MS: z.coerce.number().int().min(0).default(15_000),
   })
   .superRefine((values, context) => {
@@ -1130,6 +1138,11 @@ const optionalSummary = [
     String(parsedEnv.IDEMPOTENCY_CONCURRENCY_TIMEOUT_MS),
   ],
   ['IDEMPOTENCY_CLEANUP_CRON', parsedEnv.IDEMPOTENCY_CLEANUP_CRON],
+  [
+    'SECRET_ROTATION_TRIGGER_TOKEN',
+    parsedEnv.SECRET_ROTATION_TRIGGER_TOKEN ? '[REDACTED]' : '(not set)',
+  ],
+  ['SECRET_ROTATION_OVERLAP_MS', String(parsedEnv.SECRET_ROTATION_OVERLAP_MS)],
 ] as const;
 
 const wasDefaulted = (key: string): boolean => {
@@ -1330,6 +1343,18 @@ export const config = Object.freeze({
      * Default: daily at 03:00 UTC.
      */
     cleanupCron: parsedEnv.IDEMPOTENCY_CLEANUP_CRON,
+  }),
+  secretRotation: Object.freeze({
+    /**
+     * Shared token required by the rotation trigger. When unset the trigger
+     * endpoint is disabled (503).
+     */
+    triggerToken: parsedEnv.SECRET_ROTATION_TRIGGER_TOKEN ?? null,
+    /**
+     * Default window during which a rotated secret's previous value is still
+     * accepted. Default 24h.
+     */
+    overlapMs: parsedEnv.SECRET_ROTATION_OVERLAP_MS,
   }),
   rateLimit: Object.freeze({
     tracker: Object.freeze({
