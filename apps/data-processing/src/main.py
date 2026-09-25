@@ -425,6 +425,11 @@ def main():
         elif command == "run":
             # Run pipeline once and exit
             return run_data_pipeline()
+        elif command == "replay-quarantined":
+            from src.ingestion.quarantine_replay_cli import main as replay_main
+
+            exit_code = replay_main(sys.argv[2:])
+            return {"success": exit_code == 0, "exit_code": exit_code}
         elif command == "help":
             print("Usage:")
             print("  python pipeline.py run          - Run pipeline once")
