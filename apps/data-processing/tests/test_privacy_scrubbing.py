@@ -190,12 +190,15 @@ def test_social_fetcher_scrubs_before_returning():
         url="https://twitter.com/user/status/t1",
     )
 
-    with patch(
-        "src.ingestion.social_fetcher.TwitterFetcher.fetch_hashtag",
-        return_value=[post],
-    ), patch(
-        "src.ingestion.social_fetcher.RedditFetcher.fetch_multiple_subreddits",
-        return_value=[],
+    with (
+        patch(
+            "src.ingestion.social_fetcher.TwitterFetcher.fetch_hashtag",
+            return_value=[post],
+        ),
+        patch(
+            "src.ingestion.social_fetcher.RedditFetcher.fetch_multiple_subreddits",
+            return_value=[],
+        ),
     ):
         fetched = SocialFetcher(use_twitter=True, use_reddit=True).fetch_all(
             hashtags=["#Stellar"], limit_per_source=1
@@ -216,8 +219,7 @@ def test_news_fetcher_scrubs_before_deduplication(monkeypatch):
             {
                 "title": "Refund process explained",
                 "description": "Please write to alice@example.com for refunds",
-                "content": "Send refunds back to the wallet address 0x"
-                + "ab" * 20,
+                "content": "Send refunds back to the wallet address 0x" + "ab" * 20,
                 "publishedAt": "2024-05-01T10:00:00Z",
                 "source": {"name": "CryptoInsider"},
                 "url": "https://example.com/news/1",
@@ -242,11 +244,12 @@ def test_news_fetcher_scrubs_before_deduplication(monkeypatch):
             deduped.extend(articles)
             return articles
 
-    with patch(
-        "src.ingestion.news_fetcher.requests.Session.get",
-        return_value=response,
-    ), patch(
-        "src.ingestion.news_fetcher.NewsDeduplicator", RecordingDeduplicator
+    with (
+        patch(
+            "src.ingestion.news_fetcher.requests.Session.get",
+            return_value=response,
+        ),
+        patch("src.ingestion.news_fetcher.NewsDeduplicator", RecordingDeduplicator),
     ):
         fetcher = NewsFetcher(use_cryptocompare=False, use_newsapi=True)
         articles = fetcher.fetch_latest(limit=5)
@@ -256,8 +259,7 @@ def test_news_fetcher_scrubs_before_deduplication(monkeypatch):
     article = articles[0]
     assert article["summary"] == "Please write to [EMAIL] for refunds"
     assert (
-        article["content"]
-        == "Send refunds back to the wallet address [WALLET_ADDRESS]"
+        article["content"] == "Send refunds back to the wallet address [WALLET_ADDRESS]"
     )
     assert article["url"] == "https://example.com/news/1"
     # Deduplication runs after scrubbing: it only ever sees scrubbed records.
@@ -407,8 +409,9 @@ def test_prediction_logging_scrubs_input_and_output():
         log_prediction=lambda **kwargs: recorded.update(kwargs)
     )
 
-    with patch.object(server, "postgres_service", fake_service), patch.dict(
-        "os.environ", {"LOG_PREDICTION_RAW_INPUT": "true"}
+    with (
+        patch.object(server, "postgres_service", fake_service),
+        patch.dict("os.environ", {"LOG_PREDICTION_RAW_INPUT": "true"}),
     ):
         server._log_prediction(
             request_id="req-1",
@@ -433,8 +436,9 @@ def test_prediction_logging_omits_raw_input_by_default():
         log_prediction=lambda **kwargs: recorded.update(kwargs)
     )
 
-    with patch.object(server, "postgres_service", fake_service), patch.dict(
-        "os.environ", {}, clear=True
+    with (
+        patch.object(server, "postgres_service", fake_service),
+        patch.dict("os.environ", {}, clear=True),
     ):
         server._log_prediction(
             request_id="req-2",
@@ -446,9 +450,10 @@ def test_prediction_logging_omits_raw_input_by_default():
         )
 
     assert recorded["raw_input"] is None
-    assert recorded["input_hash"] == hashlib.sha256(
-        b"text with [EMAIL] inside"
-    ).hexdigest()
+    assert (
+        recorded["input_hash"]
+        == hashlib.sha256(b"text with [EMAIL] inside").hexdigest()
+    )
 
 
 def test_treatments_cover_every_inventory_row():
