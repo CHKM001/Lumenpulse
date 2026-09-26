@@ -5,11 +5,12 @@ PostgreSQL service for persisting analytics data
 import logging
 import math
 import os
+import threading
 import time
 import uuid
 from typing import List, Dict, Any, Optional, Tuple
 from datetime import datetime, timedelta
-from contextlib import contextmanager
+from contextlib import contextmanager, nullcontext
 from collections import defaultdict
 
 from sqlalchemy import create_engine, select, and_, desc, func, delete, update as sa_update
@@ -80,6 +81,18 @@ class PostgresService:
                     poolclass=StaticPool,
                     echo=False,
                 )
+                # StaticPool means every session shares one physical sqlite3
+                # connection so an in-memory database is visible across
+                # threads (e.g. background analytics jobs polled from the
+                # request thread). sqlite3 does not support two threads
+                # driving that one connection concurrently: a commit/rollback
+                # on one thread can invalidate a cursor another thread is
+                # still fetching from ("Cursor needed to be reset because of
+                # commit/rollback and can no longer be fetched from"). This
+                # lock serializes sessions on that shared connection. Postgres
+                # gives each session its own connection from a real pool, so
+                # no lock is needed there.
+                self._sqlite_write_lock = threading.RLock()
             else:
                 self.engine = create_engine(
                     self.database_url,
@@ -88,6 +101,7 @@ class PostgresService:
                     max_overflow=10,
                     echo=False,  # Set to True for SQL query logging
                 )
+                self._sqlite_write_lock = None
             self.SessionLocal = sessionmaker(
                 autocommit=False,
                 autoflush=False,
@@ -311,17 +325,25 @@ class PostgresService:
 
         Yields:
             Session: SQLAlchemy session
+
+        On SQLite, `_sqlite_write_lock` serializes access to the single
+        connection shared by every session (see __init__) so that a commit or
+        rollback on one thread can never invalidate a cursor another thread is
+        still reading from. This is a no-op on Postgres, which gives each
+        session its own pooled connection, so production traffic is not
+        serialized by this.
         """
-        session = self.SessionLocal()
-        try:
-            yield session
-            session.commit()
-        except Exception as e:
-            session.rollback()
-            logger.error(f"Session error: {e}")
-            raise
-        finally:
-            session.close()
+        with self._sqlite_write_lock or nullcontext():
+            session = self.SessionLocal()
+            try:
+                yield session
+                session.commit()
+            except Exception as e:
+                session.rollback()
+                logger.error(f"Session error: {e}")
+                raise
+            finally:
+                session.close()
 
     def _retry_operation(self, operation, max_retries=3, retry_delay=1.0):
         """
