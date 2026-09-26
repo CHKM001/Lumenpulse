@@ -61,6 +61,14 @@ class PostgresService:
     Service for persisting and retrieving analytics data from PostgreSQL
     """
 
+    # Class-level default so an instance built via PostgresService.__new__
+    # (bypassing __init__, as some test fixtures do to wire up a bare sqlite
+    # engine directly) still has this attribute in get_session() below,
+    # falling back to no locking rather than raising AttributeError. That
+    # bypass path also does not use StaticPool, so it was never exposed to
+    # the shared-connection race this lock guards against anyway.
+    _sqlite_write_lock = None
+
     def __init__(self, database_url: Optional[str] = None):
         """
         Initialize PostgreSQL service
